@@ -1,0 +1,1098 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Variables globales ── */
+:root {
+  --alo-green: #00983F;
+  --alo-green-dark: #007A32;
+  --alo-red: #E40721;
+  --alo-black: #1B1918;
+  --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ── Scrollbar personalizado ── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--alo-green);
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--alo-green-dark);
+}
+
+/* ── Animaciones ── */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(40px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse-glow {
+
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(0, 152, 63, 0.4);
+  }
+
+  50% {
+    box-shadow: 0 0 0 8px rgba(0, 152, 63, 0);
+  }
+}
+
+@keyframes float {
+
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% center;
+  }
+
+  100% {
+    background-position: 200% center;
+  }
+}
+
+@keyframes count-up {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ── Clases utilitarias ── */
+.animate-fade-up {
+  animation: fadeInUp 0.5s ease forwards;
+}
+
+.animate-fade-down {
+  animation: fadeInDown 0.4s ease forwards;
+}
+
+.animate-slide-left {
+  animation: slideInLeft 0.4s ease forwards;
+}
+
+.animate-slide-in {
+  animation: slideInRight 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.animate-slide-up {
+  animation: slideInUp 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.animate-count {
+  animation: count-up 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+/* Delay helpers */
+.delay-100 {
+  animation-delay: 100ms;
+}
+
+.delay-200 {
+  animation-delay: 200ms;
+}
+
+.delay-300 {
+  animation-delay: 300ms;
+}
+
+.delay-400 {
+  animation-delay: 400ms;
+}
+
+.delay-500 {
+  animation-delay: 500ms;
+}
+
+/* ── Cards con efecto hover ── */
+.card-hover {
+  transition: var(--transition);
+}
+
+.card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px rgba(0, 152, 63, 0.15);
+}
+
+/* ── Botón shimmer ── */
+.btn-shimmer {
+  background: linear-gradient(90deg, var(--alo-green) 0%, #00c450 50%, var(--alo-green) 100%);
+  background-size: 200% auto;
+  transition: var(--transition);
+}
+
+.btn-shimmer:hover {
+  background-position: right center;
+  box-shadow: 0 8px 25px rgba(0, 152, 63, 0.4);
+}
+
+/* ── Glassmorphism ── */
+.glass {
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.glass-dark {
+  background: rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* ── Stats counter ── */
+.stat-number {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+/* ── Table rows ── */
+.table-row-hover {
+  transition: background 0.15s ease;
+}
+
+.table-row-hover:hover {
+  background: rgba(0, 152, 63, 0.04);
+}
+
+/* ── Badge glow ── */
+.badge-active {
+  box-shadow: 0 0 0 3px rgba(0, 152, 63, 0.15);
+}
+
+.badge-danger {
+  box-shadow: 0 0 0 3px rgba(228, 7, 33, 0.15);
+}
+
+/* ── Gradiente texto ── */
+.text-gradient-green {
+  background: linear-gradient(135deg, #00983F, #00c450);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Pulse ring (para elementos activos) ── */
+.pulse-ring {
+  animation: pulse-glow 2s infinite;
+}
+
+/* ── Sidebar / Nav activo ── */
+.nav-active {
+  position: relative;
+}
+
+.nav-active::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 20%;
+  right: 20%;
+  height: 2px;
+  background: white;
+  border-radius: 2px;
+}
+
+/* ── Entrada de página ── */
+.page-enter {
+  opacity: 0;
+  transform: translateY(16px);
+}
+
+.page-enter-active {
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+/* ── Input focus elegante ── */
+.input-elegant {
+  transition: var(--transition);
+  border: 1.5px solid #e5e7eb;
+}
+
+.input-elegant:focus {
+  border-color: var(--alo-green);
+  box-shadow: 0 0 0 3px rgba(0, 152, 63, 0.1);
+  outline: none;
+}
+
+/* ── Hero strip mejorado ── */
+.hero-strip {
+  background: linear-gradient(135deg, #022c16 0%, #0f172a 60%, #450a0a 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-strip::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.07) 1px, transparent 0);
+  background-size: 28px 28px;
+  mask-image: radial-gradient(ellipse 80% 70% at 50% 50%, black 30%, transparent 100%);
+}
+
+.hero-strip::after {
+  content: '';
+  position: absolute;
+  top: -40%;
+  right: -5%;
+  width: 420px;
+  height: 420px;
+  background: radial-gradient(circle, rgba(228, 7, 33, 0.12) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+/* ── KPI glass cards ── */
+.kpi-glass {
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  transition: var(--transition);
+}
+
+.kpi-glass:hover {
+  transform: translateY(-4px);
+}
+
+.kpi-glow-green {
+  box-shadow: 0 4px 24px rgba(0, 152, 63, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+.kpi-glow-green:hover {
+  box-shadow: 0 16px 40px rgba(0, 152, 63, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+.kpi-glow-red {
+  box-shadow: 0 4px 24px rgba(228, 7, 33, 0.10), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+.kpi-glow-red:hover {
+  box-shadow: 0 16px 40px rgba(228, 7, 33, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+.kpi-glow-emerald {
+  box-shadow: 0 4px 24px rgba(16, 185, 129, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+.kpi-glow-emerald:hover {
+  box-shadow: 0 16px 40px rgba(16, 185, 129, 0.20), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+.kpi-glow-orange {
+  box-shadow: 0 4px 24px rgba(249, 115, 22, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+.kpi-glow-orange:hover {
+  box-shadow: 0 16px 40px rgba(249, 115, 22, 0.20), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+.kpi-border-green {
+  border-top: 3px solid #00983F;
+}
+
+.kpi-border-red {
+  border-top: 3px solid #E40721;
+}
+
+.kpi-border-emerald {
+  border-top: 3px solid #10b981;
+}
+
+.kpi-border-orange {
+  border-top: 3px solid #f97316;
+}
+
+/* ── Zona card 3D hover ── */
+.zone-card {
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.4s ease;
+  transform-style: preserve-3d;
+  position: relative;
+  overflow: hidden;
+}
+
+.zone-card:hover {
+  transform: translateY(-8px) scale(1.03);
+}
+
+/* Glass shine sweep reflection */
+.zone-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -150%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(
+    to right,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.3) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  transform: skewX(-25deg);
+  transition: left 0.75s ease;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.zone-card:hover::before {
+  left: 150%;
+}
+
+/* Parallax depth effect for card content elements */
+.zone-card .relative {
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), text-shadow 0.3s ease;
+}
+
+.zone-card:hover .relative {
+  transform: translateZ(20px);
+}
+
+/* Glow number count green on hover */
+.zone-card:hover .stat-number {
+  color: #34d399; /* emerald-400 */
+  text-shadow: 0 0 12px rgba(52, 211, 153, 0.4);
+}
+
+/* ── Activity feed ── */
+.activity-feed {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(0, 152, 63, 0.1);
+}
+
+/* ── Corrección de Autofill en Inputs ── */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px #0b2213 inset !important;
+  -webkit-text-fill-color: #ffffff !important;
+  caret-color: #ffffff !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+input:autofill {
+  background-color: #0b2213 !important;
+  color: #ffffff !important;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   ☀️ LIGHT MODE — PREMIUM GLASSMORPHISM & SOFT EMERALD THEME
+   ══════════════════════════════════════════════════════════════ */
+
+/* ── High-Tech Dotted Grid Overlay on Page Background ── */
+html:not(.dark) .alo-page-bg::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle, rgba(0, 152, 63, 0.045) 1.5px, transparent 1.5px);
+  background-size: 24px 24px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── Light mode glassmorphism containers with glass sweep reflection ── */
+html:not(.dark) .alo-page-bg .bg-white,
+html:not(.dark) .alo-page-bg .bg-white\/80 {
+  background-color: rgba(255, 255, 255, 0.8) !important;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1.5px solid rgba(0, 152, 63, 0.12) !important;
+  box-shadow: 0 10px 30px rgba(0, 152, 63, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.95) !important;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.3s ease, box-shadow 0.3s ease !important;
+}
+
+/* Diagonal glass shine sweep animation on card hover */
+html:not(.dark) .alo-page-bg .bg-white::before,
+html:not(.dark) .alo-page-bg .bg-white\/80::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -150%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(
+    to right,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.45) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  transform: skewX(-25deg);
+  transition: left 0.8s ease;
+  z-index: 5;
+  pointer-events: none;
+}
+
+html:not(.dark) .alo-page-bg .bg-white:hover,
+html:not(.dark) .alo-page-bg .bg-white\/80:hover {
+  transform: translateY(-4px);
+  border-color: rgba(0, 152, 63, 0.35) !important;
+  box-shadow: 0 15px 35px rgba(0, 152, 63, 0.1), 0 0 15px rgba(0, 152, 63, 0.05) !important;
+}
+
+html:not(.dark) .alo-page-bg .bg-white:hover::before,
+html:not(.dark) .alo-page-bg .bg-white\/80:hover::before {
+  left: 150%;
+}
+
+/* ── Glass classes in light mode ── */
+html:not(.dark) .alo-page-bg .glass {
+  background: rgba(255, 255, 255, 0.35) !important;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1.5px solid rgba(255, 255, 255, 0.5) !important;
+  box-shadow: 0 10px 32px rgba(0, 152, 63, 0.04) !important;
+}
+
+/* ── Shadow cards in light mode ── */
+html:not(.dark) .alo-page-bg .shadow-card {
+  box-shadow: 0 12px 35px rgba(0, 152, 63, 0.05), 0 1px 0 rgba(255, 255, 255, 0.95) !important;
+  border: 1.5px solid rgba(0, 152, 63, 0.12) !important;
+}
+
+/* ── KPI glass cards in light mode ── */
+html:not(.dark) .alo-page-bg .kpi-glass {
+  background: rgba(255, 255, 255, 0.82) !important;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1.5px solid rgba(0, 152, 63, 0.16) !important;
+  box-shadow: 0 10px 30px rgba(0, 152, 63, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.95) !important;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), border-color 0.3s ease, box-shadow 0.3s ease !important;
+}
+html:not(.dark) .alo-page-bg .kpi-glass:hover {
+  transform: translateY(-6px) scale(1.025);
+  border-color: rgba(0, 152, 63, 0.45) !important;
+  box-shadow: 0 20px 40px rgba(0, 152, 63, 0.14), 0 0 15px rgba(0, 152, 63, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.95) !important;
+}
+
+/* ── Hero strip with custom gradient and grid overlay in light mode ── */
+html:not(.dark) .alo-page-bg .hero-strip {
+  background: linear-gradient(135deg, #012b15 0%, #004d1f 50%, #0a1711 100%) !important;
+  box-shadow: 0 10px 30px rgba(0, 152, 63, 0.12) !important;
+}
+html:not(.dark) .alo-page-bg .hero-strip::before {
+  background-image: radial-gradient(circle at 1px 1px, rgba(0, 255, 102, 0.12) 1px, transparent 0) !important;
+}
+
+/* ── Animated floating background blobs in light mode ── */
+@keyframes float-blob-1 {
+  0%, 100% { transform: translate(0px, 0px) scale(1); }
+  33% { transform: translate(40px, -60px) scale(1.1); }
+  66% { transform: translate(-30px, 30px) scale(0.92); }
+}
+@keyframes float-blob-2 {
+  0%, 100% { transform: translate(0px, 0px) scale(1); }
+  50% { transform: translate(-50px, 40px) scale(1.15); }
+}
+@keyframes float-blob-3 {
+  0%, 100% { transform: translate(0px, 0px) scale(1); }
+  50% { transform: translate(35px, -35px) scale(1.08); }
+}
+
+.alo-blob-1 {
+  animation: float-blob-1 22s ease-in-out infinite alternate;
+}
+.alo-blob-2 {
+  animation: float-blob-2 28s ease-in-out infinite alternate;
+}
+.alo-blob-3 {
+  animation: float-blob-3 18s ease-in-out infinite alternate;
+}
+
+/* ── Inputs and forms in light mode ── */
+html:not(.dark) .alo-page-bg input[type="text"],
+html:not(.dark) .alo-page-bg input[type="search"],
+html:not(.dark) .alo-page-bg input[type="email"],
+html:not(.dark) .alo-page-bg input[type="password"],
+html:not(.dark) .alo-page-bg input[type="number"],
+html:not(.dark) .alo-page-bg input[type="date"],
+html:not(.dark) .alo-page-bg textarea,
+html:not(.dark) .alo-page-bg select {
+  background-color: rgba(255, 255, 255, 0.72) !important;
+  border: 1.5px solid rgba(0, 152, 63, 0.18) !important;
+  box-shadow: inset 0 1.5px 3px rgba(0, 0, 0, 0.015) !important;
+  transition: all 0.25s ease !important;
+  color: #1b1918 !important;
+}
+html:not(.dark) .alo-page-bg input:focus,
+html:not(.dark) .alo-page-bg textarea:focus,
+html:not(.dark) .alo-page-bg select:focus {
+  background-color: #ffffff !important;
+  border-color: #00983F !important;
+  box-shadow: 0 0 0 4px rgba(0, 152, 63, 0.12), inset 0 1.5px 3px rgba(0, 0, 0, 0.01) !important;
+}
+html:not(.dark) .alo-page-bg input::placeholder,
+html:not(.dark) .alo-page-bg textarea::placeholder {
+  color: rgba(27, 25, 24, 0.45) !important;
+}
+
+/* ── Primary button adjustments in light mode ── */
+html:not(.dark) .alo-page-bg .bg-alo-green {
+  background: linear-gradient(135deg, #00983F 0%, #00b04a 100%) !important;
+  box-shadow: 0 4px 14px rgba(0, 152, 63, 0.25) !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+html:not(.dark) .alo-page-bg .bg-alo-green:hover {
+  transform: translateY(-2.5px);
+  box-shadow: 0 8px 22px rgba(0, 152, 63, 0.4) !important;
+}
+html:not(.dark) .alo-page-bg button.bg-white:hover {
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06) !important;
+  transform: translateY(-1.5px);
+}
+
+/* ── Navbar glass effect in light mode ── */
+html:not(.dark) .alo-navbar {
+  background-color: rgba(255, 255, 255, 0.8) !important;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(0, 152, 63, 0.12) !important;
+}
+html:not(.dark) .alo-navbar.alo-navbar-scrolled {
+  background-color: rgba(255, 255, 255, 0.9) !important;
+  box-shadow: 0 10px 30px rgba(0, 152, 63, 0.06) !important;
+}
+
+/* ── Table custom styling in light mode ── */
+html:not(.dark) .alo-page-bg table thead {
+  background-color: rgba(0, 152, 63, 0.05) !important;
+}
+html:not(.dark) .alo-page-bg table thead th {
+  color: var(--alo-green-dark) !important;
+  font-weight: 800 !important;
+  border-bottom: 2px solid rgba(0, 152, 63, 0.12) !important;
+}
+html:not(.dark) .alo-page-bg table tbody tr {
+  border-bottom-color: rgba(0, 152, 63, 0.04) !important;
+}
+html:not(.dark) .alo-page-bg table tbody tr:hover {
+  background-color: rgba(0, 152, 63, 0.03) !important;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   🌓 DARK MODE — CYBERPUNK / NEON-GREEN FUTURISTIC THEME
+   ══════════════════════════════════════════════════════════════ */
+
+/* ── Smooth theme transition on everything ── */
+.theme-transition,
+.theme-transition *,
+.theme-transition *::before,
+.theme-transition *::after {
+  transition: background-color 0.4s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, opacity 0.3s ease !important;
+}
+
+/* ── Dark mode page background ── */
+.dark .alo-page-bg {
+  background: linear-gradient(to bottom, #0a0a0a 0%, #0d0d0d 30%, #0a1a10 60%, #0d0d0d 100%) !important;
+}
+
+/* ── Decorative blobs — neon glow in dark mode ── */
+.dark .alo-blob-1 {
+  background-color: rgba(0, 255, 102, 0.06) !important;
+}
+.dark .alo-blob-2 {
+  background-color: rgba(0, 255, 102, 0.04) !important;
+}
+.dark .alo-blob-3 {
+  background-color: rgba(0, 200, 80, 0.03) !important;
+}
+
+/* ── Top bar ── */
+.dark .alo-topbar {
+  background-color: #000000 !important;
+}
+
+/* ── Navbar ── */
+.dark .alo-navbar {
+  background-color: rgba(13, 13, 13, 0.97) !important;
+  backdrop-filter: blur(20px);
+  border-bottom-color: rgba(0, 255, 102, 0.1) !important;
+}
+.dark .alo-navbar.alo-navbar-scrolled {
+  background-color: rgba(10, 10, 10, 0.98) !important;
+  box-shadow: 0 4px 30px rgba(0, 255, 102, 0.08);
+  border-bottom-color: rgba(0, 255, 102, 0.15) !important;
+}
+
+/* ── Nav brand text ── */
+.dark .alo-brand-name {
+  color: #ffffff !important;
+}
+.dark .alo-brand-subtitle {
+  color: rgba(0, 255, 102, 0.7) !important;
+}
+
+/* ── Nav links ── */
+.dark .alo-nav-link {
+  color: rgba(255, 255, 255, 0.6) !important;
+}
+.dark .alo-nav-link:hover {
+  background-color: rgba(0, 255, 102, 0.08) !important;
+  color: #00ff66 !important;
+}
+.dark .alo-nav-link-active {
+  background: linear-gradient(135deg, #00ff66 0%, #00cc52 100%) !important;
+  color: #000000 !important;
+  box-shadow: 0 4px 20px rgba(0, 255, 102, 0.35) !important;
+}
+
+/* ── User profile pill ── */
+.dark .alo-user-pill {
+  background-color: rgba(255, 255, 255, 0.06) !important;
+  border: 1px solid rgba(0, 255, 102, 0.12);
+}
+.dark .alo-user-pill span {
+  color: rgba(255, 255, 255, 0.8) !important;
+}
+.dark .alo-user-avatar {
+  background-color: #00ff66 !important;
+  color: #000000 !important;
+}
+
+/* ── Logout button ── */
+.dark .alo-logout-btn {
+  border-color: rgba(255, 60, 60, 0.4) !important;
+  color: #ff4444 !important;
+}
+.dark .alo-logout-btn:hover {
+  background-color: #ff4444 !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 20px rgba(255, 68, 68, 0.3) !important;
+}
+
+/* ── Hero strip ── */
+.dark .hero-strip {
+  background: linear-gradient(135deg, #0a0a0a 0%, #0d1a11 50%, #0a0a0a 100%) !important;
+}
+.dark .hero-strip::before {
+  background-image: radial-gradient(circle at 1px 1px, rgba(0, 255, 102, 0.08) 1px, transparent 0) !important;
+}
+.dark .hero-strip::after {
+  background: radial-gradient(circle, rgba(0, 255, 102, 0.08) 0%, transparent 70%) !important;
+}
+
+/* ── Main content area — all white cards become glass dark panels ── */
+.dark .bg-white,
+.dark .bg-white\/80 {
+  background-color: rgba(18, 18, 18, 0.85) !important;
+  border-color: rgba(0, 255, 102, 0.08) !important;
+  color: rgba(255, 255, 255, 0.88) !important;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.3s ease, box-shadow 0.3s ease !important;
+}
+
+/* Diagonal glass shine sweep animation on card hover in dark mode */
+.dark .bg-white::before,
+.dark .bg-white\/80::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -150%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(
+    to right,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.12) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  transform: skewX(-25deg);
+  transition: left 0.8s ease;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.dark .bg-white:hover,
+.dark .bg-white\/80:hover {
+  transform: translateY(-4px);
+  border-color: rgba(0, 255, 102, 0.25) !important;
+  box-shadow: 0 15px 35px rgba(0, 255, 102, 0.12), 0 0 15px rgba(0, 255, 102, 0.05) !important;
+}
+
+.dark .bg-white:hover::before,
+.dark .bg-white\/80:hover::before {
+  left: 150%;
+}
+
+/* ── Shadow cards in dark mode ── */
+.dark .shadow-card {
+  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(0, 255, 102, 0.05) !important;
+}
+
+/* ── KPI glass cards ── */
+.dark .kpi-glass {
+  background: rgba(18, 18, 18, 0.9) !important;
+  border: 1px solid rgba(0, 255, 102, 0.1) !important;
+  backdrop-filter: blur(16px);
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), border-color 0.3s ease, box-shadow 0.3s ease !important;
+}
+.dark .kpi-glass:hover {
+  transform: translateY(-6px) scale(1.025);
+  border-color: rgba(0, 255, 102, 0.25) !important;
+  box-shadow: 0 8px 40px rgba(0, 255, 102, 0.12) !important;
+}
+
+/* ── KPI border overrides ── */
+.dark .kpi-border-green {
+  border-top-color: #00ff66 !important;
+}
+.dark .kpi-border-red {
+  border-top-color: #ff4444 !important;
+}
+.dark .kpi-border-emerald {
+  border-top-color: #00ff99 !important;
+}
+.dark .kpi-border-orange {
+  border-top-color: #ff9933 !important;
+}
+
+/* ── Zone cards (category cards) ── */
+.dark .zone-card {
+  border: 1px solid rgba(0, 255, 102, 0.08) !important;
+}
+.dark .zone-card:hover {
+  box-shadow: 0 16px 48px rgba(0, 255, 102, 0.15), 0 0 0 1px rgba(0, 255, 102, 0.2) !important;
+}
+.dark .zone-card:hover .stat-number {
+  color: #00ff66 !important;
+  text-shadow: 0 0 20px rgba(0, 255, 102, 0.5) !important;
+}
+
+/* ── Tables ── */
+.dark table thead {
+  background-color: rgba(0, 255, 102, 0.06) !important;
+}
+.dark table thead th {
+  color: rgba(0, 255, 102, 0.8) !important;
+  border-bottom-color: rgba(0, 255, 102, 0.1) !important;
+}
+.dark table tbody tr {
+  border-bottom-color: rgba(255, 255, 255, 0.04) !important;
+  transition: background-color 0.2s ease, transform 0.2s ease !important;
+}
+.dark table tbody tr:hover {
+  background-color: rgba(0, 255, 102, 0.04) !important;
+}
+.dark table tbody td {
+  color: rgba(255, 255, 255, 0.75) !important;
+}
+
+/* ── Inputs in dark mode ── */
+.dark input[type="text"],
+.dark input[type="search"],
+.dark input[type="email"],
+.dark input[type="password"],
+.dark input[type="number"],
+.dark input[type="date"],
+.dark textarea,
+.dark select {
+  background-color: rgba(20, 20, 20, 0.9) !important;
+  border-color: rgba(0, 255, 102, 0.15) !important;
+  color: #ffffff !important;
+}
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: rgba(255, 255, 255, 0.3) !important;
+}
+.dark input:focus,
+.dark textarea:focus,
+.dark select:focus {
+  border-color: #00ff66 !important;
+  box-shadow: 0 0 0 3px rgba(0, 255, 102, 0.15) !important;
+}
+
+/* ── Buttons with gradient (keep green shine) ── */
+.dark .btn-shimmer {
+  background: linear-gradient(90deg, #00cc52 0%, #00ff66 50%, #00cc52 100%) !important;
+  color: #000000 !important;
+}
+
+/* ── Text color overrides for labels and descriptions ── */
+.dark .text-gray-400,
+.dark .text-gray-500,
+.dark .text-gray-600 {
+  color: rgba(255, 255, 255, 0.45) !important;
+}
+.dark .text-gray-700,
+.dark .text-gray-800,
+.dark .text-gray-900 {
+  color: rgba(255, 255, 255, 0.85) !important;
+}
+.dark .text-alo-green-dark {
+  color: #00ff66 !important;
+}
+.dark .text-alo-green {
+  color: #00ff66 !important;
+}
+
+/* ── Stat number neon glow in dark mode ── */
+.dark .stat-number {
+  text-shadow: 0 0 8px rgba(0, 255, 102, 0.2);
+}
+
+/* ── Footer ── */
+.dark .alo-footer {
+  background-color: #0a0a0a !important;
+  border-top-color: rgba(0, 255, 102, 0.1) !important;
+}
+
+/* ── Badges and pills ── */
+.dark .badge-active {
+  box-shadow: 0 0 0 3px rgba(0, 255, 102, 0.2) !important;
+}
+
+/* ── Toast notifications ── */
+.dark .alo-toast {
+  background-color: rgba(18, 18, 18, 0.95) !important;
+  border: 1px solid rgba(0, 255, 102, 0.15) !important;
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+/* ── Mobile menu ── */
+.dark .alo-mobile-menu {
+  background-color: rgba(13, 13, 13, 0.98) !important;
+  border-top-color: rgba(0, 255, 102, 0.1) !important;
+}
+
+/* ── Pagination ── */
+.dark nav[aria-label] span,
+.dark nav[aria-label] a {
+  background-color: rgba(20, 20, 20, 0.8) !important;
+  border-color: rgba(0, 255, 102, 0.1) !important;
+  color: rgba(255, 255, 255, 0.6) !important;
+}
+.dark nav[aria-label] span[aria-current] {
+  background-color: #00ff66 !important;
+  color: #000000 !important;
+  border-color: #00ff66 !important;
+}
+
+/* ── Rounded card borders (general) ── */
+.dark .rounded-xl,
+.dark .rounded-2xl {
+  border-color: rgba(0, 255, 102, 0.06);
+}
+
+/* ── Scrollbar in dark mode ── */
+.dark ::-webkit-scrollbar-track {
+  background: #0d0d0d;
+}
+.dark ::-webkit-scrollbar-thumb {
+  background: #00ff66;
+}
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #00cc52;
+}
+
+/* ── Neon glow keyframes ── */
+@keyframes neonPulse {
+  0%, 100% { box-shadow: 0 0 5px rgba(0, 255, 102, 0.3), 0 0 10px rgba(0, 255, 102, 0.1); }
+  50% { box-shadow: 0 0 10px rgba(0, 255, 102, 0.5), 0 0 25px rgba(0, 255, 102, 0.2); }
+}
+
+.dark .neon-pulse {
+  animation: neonPulse 3s ease-in-out infinite;
+}
+
+/* ── Theme toggle button ── */
+.theme-toggle {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 2px solid rgba(0, 152, 63, 0.3);
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+.theme-toggle:hover {
+  border-color: rgba(0, 152, 63, 0.6);
+  background: rgba(0, 152, 63, 0.08);
+  transform: rotate(15deg);
+}
+.dark .theme-toggle {
+  border-color: rgba(0, 255, 102, 0.4);
+}
+.dark .theme-toggle:hover {
+  border-color: #00ff66;
+  background: rgba(0, 255, 102, 0.1);
+  box-shadow: 0 0 15px rgba(0, 255, 102, 0.3);
+}
+
+/* ── LED Neon Card Effect ── */
+.led-neon-card {
+  border: 2px solid rgba(0, 152, 63, 0.45) !important;
+  box-shadow: 0 0 15px rgba(0, 152, 63, 0.2), inset 0 0 10px rgba(0, 152, 63, 0.05) !important;
+  animation: ledPulseLight 3s ease-in-out infinite;
+}
+
+@keyframes ledPulseLight {
+  0%, 100% {
+    border-color: rgba(0, 152, 63, 0.45);
+    box-shadow: 0 0 15px rgba(0, 152, 63, 0.15), inset 0 0 10px rgba(0, 152, 63, 0.05);
+  }
+  50% {
+    border-color: rgba(0, 152, 63, 0.85);
+    box-shadow: 0 0 25px rgba(0, 152, 63, 0.4), inset 0 0 15px rgba(0, 152, 63, 0.15);
+  }
+}
+
+.dark .led-neon-card {
+  border: 2px solid rgba(0, 255, 102, 0.45) !important;
+  box-shadow: 0 0 15px rgba(0, 255, 102, 0.25), inset 0 0 10px rgba(0, 255, 102, 0.05) !important;
+  animation: ledPulseDark 3s ease-in-out infinite;
+}
+
+@keyframes ledPulseDark {
+  0%, 100% {
+    border-color: rgba(0, 255, 102, 0.45);
+    box-shadow: 0 0 15px rgba(0, 255, 102, 0.2), inset 0 0 10px rgba(0, 255, 102, 0.05);
+  }
+  50% {
+    border-color: rgba(0, 255, 102, 0.85);
+    box-shadow: 0 0 28px rgba(0, 255, 102, 0.55), inset 0 0 15px rgba(0, 255, 102, 0.15);
+  }
+}
+
+/* ── Guest Login Inputs (Always Dark-Themed) ── */
+.login-input {
+  background-color: rgba(255, 255, 255, 0.05) !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.1) !important;
+  color: #ffffff !important;
+}
+
+.login-input::placeholder {
+  color: rgba(255, 255, 255, 0.3) !important;
+}
+
+.login-input:focus {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  border-color: rgba(0, 152, 63, 0.8) !important; /* alo-green border on focus */
+  box-shadow: 0 0 0 3px rgba(0, 152, 63, 0.3) !important;
+  outline: none !important;
+}
+
+/* ── LED Neon Green Button ── */
+.btn-led-green {
+  background: #022c16 !important;
+  border: 2px solid #00983F !important;
+  color: #00ff66 !important;
+  box-shadow: 0 0 12px rgba(0, 152, 63, 0.4), inset 0 0 8px rgba(0, 152, 63, 0.2) !important;
+  text-shadow: 0 0 8px rgba(0, 255, 102, 0.6) !important;
+  transition: all 0.3s ease !important;
+  animation: btnLedPulse 2.5s ease-in-out infinite !important;
+}
+
+.btn-led-green:hover {
+  background: #044725 !important;
+  border-color: #00ff66 !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 20px rgba(0, 255, 102, 0.6), inset 0 0 12px rgba(0, 255, 102, 0.3) !important;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.8) !important;
+  transform: translateY(-2px) scale(1.02) !important;
+}
+
+@keyframes btnLedPulse {
+  0%, 100% {
+    border-color: rgba(0, 152, 63, 0.6);
+    box-shadow: 0 0 12px rgba(0, 152, 63, 0.4), inset 0 0 8px rgba(0, 152, 63, 0.2);
+  }
+  50% {
+    border-color: rgba(0, 255, 102, 0.9);
+    box-shadow: 0 0 22px rgba(0, 255, 102, 0.7), inset 0 0 14px rgba(0, 255, 102, 0.35);
+  }
+}
