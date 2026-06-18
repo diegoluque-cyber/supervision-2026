@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    ports:
+      - "80:80"
+    depends_on:
+      - db
+    env_file:
+      - .env
+
+  db:
+    image: mysql:8.0
+    restart: always
+    environment:
+      MYSQL_DATABASE: supervision
+      MYSQL_USER: laravel
+      MYSQL_PASSWORD: Laravel2026!
+      MYSQL_ROOT_PASSWORD: Laravel2026!
+    volumes:
+      - dbdata:/var/lib/mysql
+    ports:
+      - "3306:3306"
+
+volumes:
+  dbdata:
