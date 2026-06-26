@@ -4,7 +4,12 @@ import { Head, router, useForm, usePage } from '@inertiajs/vue3';
 import { ref, watch } from 'vue';
 
 const page = usePage();
-const successMsg = page.props.flash?.success;
+
+const getLocalDatetimeString = () => {
+    const tzoffset = (new Date()).getTimezoneOffset() * 60000;
+    return (new Date(Date.now() - tzoffset)).toISOString().slice(0, 16);
+};
+
 
 const props = defineProps({
     categoria:        String,
@@ -14,6 +19,7 @@ const props = defineProps({
     historial:        Array,
     stats:            Object,
     tipos:            Object,
+    citados:          Array,
 });
 
 // ── Tabs de categoría ─────────────────────────────────────
@@ -22,7 +28,7 @@ const categoryIcons = {
     san_pablo:   '🚐',
     cerro_verde: '🏔',
     mitsui:      '🏭',
-    otros:       '🚕',
+    conductor:   '🚕',
 };
 
 const categoryImages = {
@@ -30,7 +36,7 @@ const categoryImages = {
     san_pablo:   '/img/san_pablo.jpg',
     cerro_verde: '/img/cerro_verde.png',
     mitsui:      '/img/mitsui.png',
-    otros:       '/img/alo45.jpg',
+    conductor:   '/img/alo45.jpg',
 };
 
 const goCategoria = (key) => {
@@ -53,12 +59,15 @@ const showFaltaForm = ref(false);
 const photoPreviews = ref([]);
 const selectedFiles = ref([]);
 
+const programarAlarma = ref(false);
 const faltaForm = useForm({
     unidad_id:   props.unidadEncontrada?.id ?? '',
     tipo:        'observacion',
     descripcion: '',
     fotos:       [],
     categoria:   props.categoria || '',
+    fecha_falta:  getLocalDatetimeString(),
+    fecha_alarma: '',
 });
 
 watch(() => props.unidadEncontrada, (u) => {
@@ -66,9 +75,11 @@ watch(() => props.unidadEncontrada, (u) => {
         faltaForm.unidad_id = u.id;
         faltaForm.categoria = props.categoria;
         showFaltaForm.value  = false;
-        faltaForm.reset('tipo', 'descripcion', 'fotos');
+        faltaForm.reset('tipo', 'descripcion', 'fotos', 'fecha_falta', 'fecha_alarma');
+        faltaForm.fecha_falta = getLocalDatetimeString();
         photoPreviews.value  = [];
         selectedFiles.value  = [];
+        programarAlarma.value = false;
     }
 });
 
@@ -89,15 +100,61 @@ const removePhoto = (idx) => {
     photoPreviews.value.splice(idx, 1);
 };
 
+// ── Formulario de papeletas ───────────────────────────────
+const showPapeletaModal = ref(false);
+const papeletaForm = useForm({
+    nro_papeleta: '',
+    monto: '',
+    fecha_emision: new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0],
+    infraccion: '',
+    estado_pago: 'pendiente',
+});
+
+const submitPapeleta = () => {
+    papeletaForm.post(route('unidades.papeletas.store', props.unidadEncontrada.id), {
+        onSuccess: () => {
+            showPapeletaModal.value = false;
+            papeletaForm.reset();
+            papeletaForm.fecha_emision = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0];
+        }
+    });
+};
+
+const processingPapeletaId = ref(null);
+
+const togglePagoPapeleta = (id) => {
+    if (processingPapeletaId.value) return;
+    processingPapeletaId.value = id;
+    router.put(route('papeletas.toggle-pago', id), {}, {
+        preserveScroll: true,
+        onFinish: () => {
+            processingPapeletaId.value = null;
+        }
+    });
+};
+
+const deletePapeleta = (id) => {
+    if (confirm('¿Seguro que deseas eliminar esta papeleta?')) {
+        router.delete(route('papeletas.destroy', id), {
+            preserveScroll: true,
+        });
+    }
+};
+
 const submitFalta = () => {
     faltaForm.fotos = selectedFiles.value;
     faltaForm.categoria = props.categoria;
+    if (!programarAlarma.value) {
+        faltaForm.fecha_alarma = '';
+    }
     faltaForm.post(route('supervision.faltas.store'), {
         onSuccess: () => {
             showFaltaForm.value  = false;
-            faltaForm.reset('tipo', 'descripcion', 'fotos');
+            faltaForm.reset('tipo', 'descripcion', 'fotos', 'fecha_alarma');
+            faltaForm.fecha_falta = getLocalDatetimeString();
             photoPreviews.value  = [];
             selectedFiles.value  = [];
+            programarAlarma.value = false;
         },
     });
 };
@@ -138,7 +195,7 @@ const doDeleteFalta = () => {
 const tipoColor = {
     observacion:                    'bg-amber-50/80 backdrop-blur-xl text-amber-900 border border-amber-200/50 shadow-sm dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/30',
     falta_grave:                    'bg-orange-50/80 backdrop-blur-xl text-orange-900 border border-orange-200/50 shadow-sm dark:bg-orange-500/10 dark:text-orange-400 dark:border-orange-500/30',
-    expulsado:                      'bg-red-50/80 backdrop-blur-xl text-red-800 border border-red-200/50 shadow-sm dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/30',
+    expulsado:                      'bg-red-500/15 text-red-600 border border-red-500/35 shadow-[0_0_8px_rgba(239,68,68,0.15)] dark:bg-red-500/20 dark:text-red-300 dark:border-red-500/55 dark:shadow-[0_0_12px_rgba(239,68,68,0.3)] font-bold',
     tarifa_negociable:              'bg-blue-50/80 backdrop-blur-xl text-blue-900 border border-blue-200/50 shadow-sm dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/30',
     libre:                          'bg-emerald-50/80 backdrop-blur-xl text-emerald-900 border border-emerald-200/50 shadow-sm dark:bg-emerald-500/10 dark:text-[#00ff66] dark:border-[#00ff66]/30',
     cancela_servicios_corporativos: 'bg-purple-50/80 backdrop-blur-xl text-purple-900 border border-purple-200/50 shadow-sm dark:bg-purple-500/10 dark:text-purple-400 dark:border-purple-500/30',
@@ -173,6 +230,17 @@ const imprimirReporte = () => {
     if (filterDesde.value) url += `&fecha_desde=${filterDesde.value}`;
     if (filterHasta.value) url += `&fecha_hasta=${filterHasta.value}`;
     window.open(url, '_blank');
+};
+
+// ── Control de Sub-Tabs e Historiales Específicos ──────────────────
+const activeSubTab = ref('faltas'); // 'faltas', 'citaciones'
+
+const quitarCitacion = (conductorId) => {
+    if (confirm('¿Seguro que deseas quitar la citación a este conductor?')) {
+        router.put(route('conductores.quitar-citacion', conductorId), {}, {
+            preserveScroll: true,
+        });
+    }
 };
 </script>
 
@@ -215,7 +283,7 @@ const imprimirReporte = () => {
                 <!-- 3D Watermark Text Behind Content -->
                 <div class="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden z-0">
                     <span class="text-3xl font-black uppercase tracking-tighter text-white/5 opacity-30 transition-all duration-500 group-hover:text-white/10 group-hover:scale-125 group-hover:opacity-100 group-hover:rotate-2 select-none pointer-events-none font-sans">
-                        {{ key === 'otros' ? 'TARIFA' : label }}
+                        {{ key === 'conductor' ? 'TARIFA NEGOCIABLE' : label }}
                     </span>
                 </div>
 
@@ -233,13 +301,39 @@ const imprimirReporte = () => {
                     </div>
                     <div class="relative">
                         <p class="text-[10px] font-bold uppercase tracking-wider text-emerald-400/80">{{ categoryIcons[key] }} Zona</p>
-                        <p class="text-sm font-black text-white">{{ key === 'otros' ? 'Tarifa negociable' : label }}</p>
+                        <p class="text-sm font-black text-white">{{ key === 'conductor' ? 'Tarifa Negociable' : label }}</p>
                     </div>
                 </div>
             </button>
         </div>
 
-        <!-- Stats rápidas de la categoría -->
+        <!-- Sub-Tabs Selector (Faltas, Citaciones) -->
+        <div class="mb-6 flex flex-wrap gap-2 border-b border-gray-200 dark:border-gray-800 pb-px">
+            <button
+                @click="activeSubTab = 'faltas'"
+                class="flex items-center gap-2 border-b-2 px-5 py-3 text-sm font-bold transition-all"
+                :class="activeSubTab === 'faltas'
+                    ? 'border-alo-green text-alo-green dark:text-emerald-400'
+                    : 'border-transparent text-gray-500 hover:text-gray-800 dark:hover:text-white'"
+            >
+                <span>👁</span> Registro de Faltas
+            </button>
+            <button
+                @click="activeSubTab = 'citaciones'"
+                class="flex items-center gap-2 border-b-2 px-5 py-3 text-sm font-bold transition-all relative"
+                :class="activeSubTab === 'citaciones'
+                    ? 'border-alo-green text-alo-green dark:text-emerald-400'
+                    : 'border-transparent text-gray-500 hover:text-gray-800 dark:hover:text-white'"
+            >
+                <span>📅</span> Citaciones Activas
+                <span v-if="citados.length > 0" class="rounded-full bg-amber-500 px-2 py-0.5 text-[10px] font-black text-white shrink-0">
+                    {{ citados.length }}
+                </span>
+            </button>
+        </div>
+
+        <div v-if="activeSubTab === 'faltas'">
+            <!-- Stats rápidas de la categoría -->
         <div class="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7">
             <div v-for="(label, tipo) in tipos" :key="tipo"
                 class="rounded-xl bg-white/80 backdrop-blur-sm p-4 shadow-card text-center border border-white/50 transition hover:shadow-md hover:-translate-y-0.5">
@@ -259,8 +353,8 @@ const imprimirReporte = () => {
         <!-- Buscador de unidad -->
         <div class="mb-6 rounded-xl bg-white/80 backdrop-blur-sm p-5 shadow-card border border-white/50 transition hover:shadow-md">
             <div class="flex items-center gap-3 mb-4">
-                <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-alo-green/10">
-                    <svg class="h-4 w-4 text-alo-green" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-alo-green/10 dark:bg-emerald-500/20">
+                    <svg class="h-4 w-4 text-alo-green search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                     </svg>
                 </div>
@@ -297,15 +391,15 @@ const imprimirReporte = () => {
                             <span class="rounded-full bg-white/20 px-2.5 py-0.5 text-xs font-bold text-white">
                                 {{ unidadEncontrada.categoria_label }}
                             </span>
-                            <span v-if="unidadEncontrada.estado !== 'activo'"
-                                class="rounded-full px-2.5 py-0.5 text-xs font-bold"
+                            <span v-if="unidadEncontrada.estado !== 'activo' && !unidadEncontrada.faltas.some(f => f.tipo === 'expulsado')"
+                                class="rounded-full px-2.5 py-0.5 text-xs font-bold capitalize"
                                 :class="unidadEncontrada.estado === 'mantenimiento'
-                                    ? 'bg-yellow-400/80 text-yellow-900'
-                                    : 'bg-red-400/80 text-white'"
+                                    ? 'bg-yellow-500/20 text-yellow-600 dark:text-yellow-400 border border-yellow-500/30'
+                                    : 'bg-red-500/20 text-red-600 dark:text-red-400 border border-red-500/30'"
                             >{{ unidadEncontrada.estado }}</span>
                             <span v-if="unidadEncontrada.faltas.some(f => f.tipo === 'expulsado')"
-                                class="rounded-full bg-red-500/80 px-2.5 py-0.5 text-xs font-bold text-white"
-                                title="Tiene faltas por expulsado">🚫 Expulsado</span>
+                                class="rounded-full bg-gradient-to-r from-red-600 to-rose-600 px-3 py-1 text-xs font-black uppercase tracking-wider text-white border border-red-500/40 shadow-[0_0_15px_rgba(239,68,68,0.45)]"
+                                title="Tiene faltas por expulsado">🚫 EXPULSADO</span>
                         </div>
                         <p class="text-sm text-white/70 font-mono mt-1">{{ unidadEncontrada.placa }}</p>
                     </div>
@@ -337,6 +431,25 @@ const imprimirReporte = () => {
                             <p class="font-bold text-white">{{ unidadEncontrada.conductor.nombre }}</p>
                             <p class="text-sm text-white/80">DNI: {{ unidadEncontrada.conductor.dni }}</p>
                             <p class="text-sm text-white/80">📞 {{ unidadEncontrada.conductor.telefono || '—' }}</p>
+                            
+                            <!-- Alerta de citación del conductor con opción rápida de quitar -->
+                            <div v-if="unidadEncontrada.conductor.fecha_citacion" class="mt-3 citation-card rounded-xl p-3 max-w-[290px]">
+                                <div class="flex items-center gap-1.5 mb-1.5">
+                                    <span class="text-sm">📅</span>
+                                    <p class="text-[10px] font-black text-amber-600 dark:text-amber-400 uppercase tracking-wider">
+                                        Chofer Citado ({{ unidadEncontrada.conductor.fecha_citacion }})
+                                    </p>
+                                </div>
+                                <p class="text-xs text-gray-600 dark:text-neutral-300 font-medium italic pl-3.5 border-l-2 border-amber-500/50 my-2" v-if="unidadEncontrada.conductor.motivo_citacion">
+                                    "{{ unidadEncontrada.conductor.motivo_citacion }}"
+                                </p>
+                                <button
+                                    @click="quitarCitacion(unidadEncontrada.conductor.id)"
+                                    class="mt-2.5 w-full rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-1.5 px-3 transition flex items-center justify-center gap-1 shadow-sm"
+                                >
+                                    ✓ Chofer se reportó (Quitar)
+                                </button>
+                            </div>
                         </div>
                         <p v-else class="text-sm text-white/50">Sin conductor asignado</p>
                     </div>
@@ -392,6 +505,77 @@ const imprimirReporte = () => {
                             class="ml-3 text-xs text-gray-300 transition hover:text-alo-red"
                             title="Eliminar falta"
                         >✕</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── SECCIÓN DE PAPELETAS ── -->
+            <div class="border-t border-gray-100 dark:border-gray-800 bg-white dark:bg-transparent px-5 pb-5">
+                <div class="flex items-center justify-between pt-5 mb-4">
+                    <h3 class="font-bold text-alo-black dark:text-white flex items-center gap-2">
+                        ⚖️ Control de Papeletas / Multas
+                        <span class="rounded-full bg-gray-100 dark:bg-gray-800 px-2 py-0.5 text-xs text-gray-500 dark:text-gray-300">
+                            {{ unidadEncontrada.papeletas.length }} total
+                        </span>
+                        <span v-if="unidadEncontrada.papeletas.some(p => p.estado_pago === 'pendiente')" class="rounded-full bg-red-100 dark:bg-red-950/40 px-2 py-0.5 text-xs font-black text-red-700 dark:text-red-400">
+                            {{ unidadEncontrada.papeletas.filter(p => p.estado_pago === 'pendiente').length }} pendientes
+                        </span>
+                    </h3>
+                    <button
+                        @click="showPapeletaModal = true"
+                        class="rounded-lg bg-emerald-600 hover:bg-emerald-700 px-3.5 py-1.5 text-xs font-bold text-white shadow-sm transition-all"
+                    >
+                        + Registrar papeleta
+                    </button>
+                </div>
+
+                <div v-if="unidadEncontrada.papeletas.length === 0" class="text-sm text-gray-400 dark:text-gray-300 italic py-2">
+                    Sin papeletas registradas para esta unidad.
+                </div>
+
+                <div v-else class="space-y-3">
+                    <div
+                        v-for="pap in unidadEncontrada.papeletas"
+                        :key="pap.id"
+                        class="flex flex-col sm:flex-row sm:items-center justify-between rounded-xl border border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/30 px-4 py-3 gap-3"
+                    >
+                        <div class="flex-1">
+                            <div class="flex items-center gap-2 mb-1.5">
+                                <span class="text-sm font-black text-alo-black dark:text-white">📄 Nro: {{ pap.nro_papeleta }}</span>
+                                <span class="text-[11px] text-gray-400 dark:text-gray-300">Emisión: {{ pap.fecha_emision }}</span>
+                                <span v-if="pap.fecha_pago" class="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium">· Pagado el: {{ pap.fecha_pago }}</span>
+                            </div>
+                            <p class="text-xs text-gray-600 dark:text-gray-300 italic" v-if="pap.infraccion">
+                                <span class="font-bold text-gray-400">Infracción:</span> {{ pap.infraccion }}
+                            </p>
+                        </div>
+
+                        <div class="flex items-center justify-between sm:justify-end gap-5">
+                            <div class="text-right">
+                                <p class="text-xs text-gray-400">Monto</p>
+                                <p class="text-base font-black text-alo-black dark:text-white font-mono">S/. {{ Number(pap.monto).toFixed(2) }}</p>
+                            </div>
+
+                            <!-- Estado pago y Toggle -->
+                            <button
+                                @click="togglePagoPapeleta(pap.id)"
+                                :disabled="processingPapeletaId === pap.id"
+                                class="rounded-full px-3 py-1.5 text-xs font-bold transition flex items-center gap-1 hover:scale-105 disabled:opacity-50 disabled:pointer-events-none"
+                                :class="pap.estado_pago === 'pagado'
+                                    ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-[#00ff66]'
+                                    : 'bg-red-100 text-red-800 dark:bg-red-950/40 dark:text-[#ff4444]'"
+                                :title="pap.estado_pago === 'pagado' ? 'Marcar como Pendiente' : 'Marcar como Pagado'"
+                            >
+                                <span>{{ processingPapeletaId === pap.id ? 'Cargando...' : (pap.estado_pago === 'pagado' ? '✓ PAGADO' : '⚠ PENDIENTE') }}</span>
+                            </button>
+
+                            <!-- Delete button -->
+                            <button
+                                @click="deletePapeleta(pap.id)"
+                                class="text-gray-300 hover:text-alo-red transition text-sm font-bold pl-2"
+                                title="Eliminar papeleta"
+                            >✕</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -458,7 +642,7 @@ const imprimirReporte = () => {
                     </div>
                     <div class="flex-1 min-w-0">
                         <div class="flex flex-wrap items-center gap-2 mb-0.5">
-                            <span class="rounded-full px-2 py-0.5 text-xs font-bold" :class="falta.tipo_color">
+                            <span class="rounded-full px-2 py-0.5 text-xs font-bold" :class="tipoColor[falta.tipo]">
                                 {{ tipoIcon[falta.tipo] }} {{ falta.tipo_label }}
                             </span>
                             <span class="text-xs text-gray-400 dark:text-gray-300">{{ falta.fecha_falta }}</span>
@@ -489,8 +673,76 @@ const imprimirReporte = () => {
                 </div>
             </div>
         </div>
+    </div> <!-- Cierre de activeSubTab === 'faltas' -->
 
-        <!-- ── Modal: Registrar Falta ── -->
+    <!-- TAB: Citaciones Activas -->
+    <div v-else-if="activeSubTab === 'citaciones'" class="space-y-6">
+        <div class="rounded-xl bg-white dark:bg-gray-900/60 shadow-card p-6 border border-white/50">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+                <div>
+                    <h2 class="text-xl font-bold text-alo-black dark:text-white flex items-center gap-2">
+                        📅 Control de Citaciones
+                        <span class="rounded-full bg-amber-500/10 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400 px-2.5 py-0.5 text-xs font-black">
+                            {{ citados.length }} activas
+                        </span>
+                    </h2>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 font-semibold">Conductores citados para presentarse a la base de supervisión</p>
+                </div>
+            </div>
+
+            <div v-if="citados.length === 0" class="py-16 text-center flex flex-col items-center justify-center gap-2">
+                <div class="h-12 w-12 rounded-full bg-emerald-500/10 text-emerald-500 flex items-center justify-center text-2xl font-bold">✨</div>
+                <p class="font-bold text-emerald-600 dark:text-emerald-400">¡Ningún conductor citado pendiente!</p>
+                <p class="text-xs text-gray-400 max-w-sm">Todos los conductores se encuentran al día o no tienen citaciones registradas.</p>
+            </div>
+
+            <div v-else class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="border-b border-gray-100 dark:border-gray-800 text-xs font-bold uppercase tracking-wider text-gray-400">
+                            <th class="py-3 px-4">Unidad</th>
+                            <th class="py-3 px-4">Conductor</th>
+                            <th class="py-3 px-4">Fecha citada</th>
+                            <th class="py-3 px-4">Motivo / Observación</th>
+                            <th class="py-3 px-4 text-right">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-50 dark:divide-gray-800 text-sm">
+                        <tr v-for="citado in citados" :key="citado.id" class="hover:bg-gray-50/50 dark:hover:bg-gray-800/20 transition">
+                            <td class="py-4 px-4 font-black text-alo-green dark:text-emerald-400">
+                                <div class="flex flex-col">
+                                    <span>#{{ citado.unidad_codigo || '—' }}</span>
+                                    <span class="text-[10px] font-mono text-gray-400">{{ citado.unidad_placa || '—' }}</span>
+                                </div>
+                            </td>
+                            <td class="py-4 px-4">
+                                <div class="font-bold text-gray-800 dark:text-gray-200">{{ citado.nombre }}</div>
+                                <div class="text-xs text-gray-400">DNI: {{ citado.dni }} · 📞 {{ citado.telefono || '—' }}</div>
+                            </td>
+                            <td class="py-4 px-4 font-semibold text-gray-700 dark:text-gray-300">
+                                <span class="inline-flex items-center gap-1.5 rounded-full bg-amber-500/10 px-2.5 py-0.5 text-xs font-medium text-amber-700 dark:text-amber-400 border border-amber-500/10">
+                                    📅 {{ citado.fecha_citacion }}
+                                </span>
+                            </td>
+                            <td class="py-4 px-4 text-gray-600 dark:text-gray-300 max-w-xs truncate" :title="citado.motivo_citacion">
+                                {{ citado.motivo_citacion || 'Sin motivo específico' }}
+                            </td>
+                            <td class="py-4 px-4 text-right">
+                                <button
+                                    @click="quitarCitacion(citado.id)"
+                                    class="inline-flex items-center gap-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-1.5 text-xs font-bold shadow-sm transition hover:scale-102"
+                                >
+                                    ✓ Se reportó
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Modal: Registrar Falta ── -->
         <Teleport to="body">
             <div v-if="showFaltaForm" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
             <div class="w-full max-w-md rounded-xl bg-white dark:bg-gray-900 shadow-xl border dark:border-gray-800">
@@ -545,6 +797,31 @@ const imprimirReporte = () => {
                         <p v-if="faltaForm.errors.descripcion" class="text-xs text-red-500">{{ faltaForm.errors.descripcion }}</p>
                     </div>
 
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="mb-1 block text-sm font-semibold text-alo-black dark:text-white">Fecha de falta</label>
+                            <input v-model="faltaForm.fecha_falta" type="datetime-local" required
+                                class="w-full rounded-lg border border-gray-300 dark:border-gray-700 px-3 py-2 text-sm focus:border-alo-green focus:outline-none focus:ring-2 focus:ring-alo-green/20 dark:bg-gray-800 dark:text-white" />
+                        </div>
+                        <div>
+                            <label class="mb-1 block text-sm font-semibold text-alo-black dark:text-white">Programar Retorno Obligatorio</label>
+                            <div class="flex items-center h-10 mt-1">
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" v-model="programarAlarma" class="sr-only peer" />
+                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-alo-green"></div>
+                                    <span class="ml-2 text-xs font-bold text-gray-500 dark:text-gray-300">Activar</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div v-if="programarAlarma">
+                        <label class="mb-1 block text-sm font-semibold text-alo-black dark:text-white">Fecha de Retorno *</label>
+                        <input v-model="faltaForm.fecha_alarma" type="date" required
+                            class="w-full rounded-lg border border-gray-300 dark:border-gray-700 px-3 py-2 text-sm focus:border-alo-green focus:outline-none focus:ring-2 focus:ring-alo-green/20 dark:bg-gray-800 dark:text-white" />
+                        <p class="mt-1 text-[10px] text-gray-400">El sistema emitirá una notificación sonora y visual el día que la unidad deba presentarse.</p>
+                    </div>
+
                     <div>
                         <label class="mb-1 block text-sm font-semibold text-alo-black dark:text-white">Evidencia Fotográfica (Opcional)</label>
                         <input
@@ -578,6 +855,75 @@ const imprimirReporte = () => {
         </div>
         </Teleport>
 
+        <!-- ── Modal: Registrar Papeleta ── -->
+        <Teleport to="body">
+            <div v-if="showPapeletaModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+                <div class="w-full max-w-md rounded-xl bg-white dark:bg-gray-900 shadow-xl border dark:border-gray-800">
+                    <div class="flex items-center justify-between border-b border-gray-100 px-6 py-4">
+                        <div>
+                            <h2 class="font-bold text-alo-black dark:text-white">Registrar Papeleta</h2>
+                            <p class="text-xs text-gray-400 dark:text-gray-300">Asignar multa a la Unidad #{{ unidadEncontrada?.codigo }}</p>
+                        </div>
+                        <button @click="showPapeletaModal = false" class="text-gray-400 dark:text-gray-300 hover:text-gray-600 dark:hover:text-white">✕</button>
+                    </div>
+                    <form @submit.prevent="submitPapeleta" class="space-y-4 px-6 py-5">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="mb-1 block text-sm font-semibold text-alo-black dark:text-white">Nro. de Papeleta *</label>
+                                <input v-model="papeletaForm.nro_papeleta" type="text" required maxlength="50"
+                                    class="w-full rounded-lg border border-gray-300 dark:border-gray-700 px-3 py-2 text-sm focus:border-alo-green focus:outline-none focus:ring-2 focus:ring-alo-green/20 dark:bg-gray-800 dark:text-white"
+                                    placeholder="Ej: M-20942" />
+                                <p v-if="papeletaForm.errors.nro_papeleta" class="text-xs text-red-500 mt-1">{{ papeletaForm.errors.nro_papeleta }}</p>
+                            </div>
+                            <div>
+                                <label class="mb-1 block text-sm font-semibold text-alo-black dark:text-white">Monto (S/.) *</label>
+                                <input v-model="papeletaForm.monto" type="number" step="0.01" min="0" required
+                                    class="w-full rounded-lg border border-gray-300 dark:border-gray-700 px-3 py-2 text-sm focus:border-alo-green focus:outline-none focus:ring-2 focus:ring-alo-green/20 dark:bg-gray-800 dark:text-white font-mono"
+                                    placeholder="150.00" />
+                                <p v-if="papeletaForm.errors.monto" class="text-xs text-red-500 mt-1">{{ papeletaForm.errors.monto }}</p>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="mb-1 block text-sm font-semibold text-alo-black dark:text-white">Fecha de Emisión *</label>
+                                <input v-model="papeletaForm.fecha_emision" type="date" required
+                                    class="w-full rounded-lg border border-gray-300 dark:border-gray-700 px-3 py-2 text-sm focus:border-alo-green focus:outline-none focus:ring-2 focus:ring-alo-green/20 dark:bg-gray-800 dark:text-white" />
+                                <p v-if="papeletaForm.errors.fecha_emision" class="text-xs text-red-500 mt-1">{{ papeletaForm.errors.fecha_emision }}</p>
+                            </div>
+                            <div>
+                                <label class="mb-1 block text-sm font-semibold text-alo-black dark:text-white">Estado Inicial *</label>
+                                <select v-model="papeletaForm.estado_pago"
+                                    class="w-full rounded-lg border border-gray-300 dark:border-gray-700 px-3 py-2 text-sm focus:border-alo-green focus:outline-none dark:bg-gray-800 dark:text-white">
+                                    <option value="pendiente">Pendiente (No pagado)</option>
+                                    <option value="pagado">Pagado</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="mb-1 block text-sm font-semibold text-alo-black dark:text-white">Infracción / Concepto</label>
+                            <input v-model="papeletaForm.infraccion" type="text" maxlength="255"
+                                class="w-full rounded-lg border border-gray-300 dark:border-gray-700 px-3 py-2 text-sm focus:border-alo-green focus:outline-none focus:ring-2 focus:ring-alo-green/20 dark:bg-gray-800 dark:text-white"
+                                placeholder="Ej: G-57 Estacionar en zona prohibida" />
+                            <p v-if="papeletaForm.errors.infraccion" class="text-xs text-red-500 mt-1">{{ papeletaForm.errors.infraccion }}</p>
+                        </div>
+
+                        <div class="flex gap-3 pt-2">
+                            <button type="button" @click="showPapeletaModal = false"
+                                class="flex-1 rounded-lg border border-gray-300 dark:border-gray-700 py-2 text-sm font-semibold text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800">
+                                Cancelar
+                            </button>
+                            <button type="submit" :disabled="papeletaForm.processing"
+                                class="flex-1 rounded-lg bg-alo-green py-2 text-sm font-bold text-white hover:bg-alo-green-dark disabled:opacity-50 transition">
+                                {{ papeletaForm.processing ? 'Registrar' : 'Registrar' }}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </Teleport>
+
         <!-- ── Modal: Confirmar eliminar falta ── -->
         <Teleport to="body">
             <div v-if="confirmDeleteFalta" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
@@ -598,11 +944,7 @@ const imprimirReporte = () => {
         </div>
         </Teleport>
 
-        <!-- Notificación de éxito flotante -->
-        <div v-if="successMsg"
-            class="fixed bottom-6 right-6 z-50 rounded-xl bg-alo-green px-5 py-3 text-sm font-bold text-white shadow-alo">
-            ✓ {{ successMsg }}
-        </div>
+
 
         <!-- Visor de Imágenes (Lightbox) -->
         <Teleport to="body">

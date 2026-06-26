@@ -1096,3 +1096,52 @@ html:not(.dark) .alo-page-bg table tbody tr:hover {
     box-shadow: 0 0 22px rgba(0, 255, 102, 0.7), inset 0 0 14px rgba(0, 255, 102, 0.35);
   }
 }
+
+/* ── Premium High-Tech Dark Style for Search inputs in Hero Strip ── */
+.hero-strip input[type="search"],
+.hero-strip input[type="text"],
+.hero-strip select {
+  background-color: rgba(6, 15, 11, 0.65) !important; /* Translucent deep dark green-black */
+  border: 1.5px solid rgba(16, 185, 129, 0.35) !important; /* Sleek brand green border */
+  color: #ffffff !important; /* Crisp white text */
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  box-shadow: inset 0 1.5px 3px rgba(0, 0, 0, 0.3) !important;
+  transition: all 0.3s ease !important;
+}
+
+.hero-strip input[type="search"]::placeholder,
+.hero-strip input[type="text"]::placeholder {
+  color: rgba(255, 255, 255, 0.5) !important; /* Soft white placeholder */
+}
+
+/* Hover state */
+.hero-strip input[type="search"]:hover,
+.hero-strip input[type="text"]:hover,
+.hero-strip select:hover {
+  background-color: rgba(6, 15, 11, 0.8) !important;
+  border-color: rgba(16, 185, 129, 0.6) !important;
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.2), inset 0 1.5px 3px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Focus state */
+.hero-strip input[type="search"]:focus,
+.hero-strip input[type="text"]:focus,
+.hero-strip select:focus {
+  background-color: rgba(6, 15, 11, 0.9) !important;
+  border-color: #00ff66 !important; /* Neon green glow on focus */
+  box-shadow: 0 0 16px rgba(0, 255, 102, 0.4), inset 0 1.5px 3px rgba(0, 0, 0, 0.3) !important;
+  outline: none !important;
+  color: #ffffff !important;
+}
+
+/* Glowing Search icon */
+.hero-strip .search-icon {
+  color: #10b981 !important; /* Vibrant brand emerald green */
+  filter: drop-shadow(0 0 3px rgba(16, 185, 129, 0.5)) !important;
+}
+
+.dark .hero-strip .search-icon {
+  color: #00ff66 !important; /* Radiant neon green */
+  filter: drop-shadow(0 0 4px rgba(0, 255, 102, 0.7)) !important;
+}

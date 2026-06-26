@@ -40,8 +40,8 @@ const goSupervision = (codigo) => {
         <template #header>
             <div class="relative flex items-center gap-6">
                 <div class="relative group">
-                    <div class="absolute -inset-1 bg-gradient-to-r from-red-500/30 to-orange-500/30 rounded-2xl blur-lg opacity-100 transition-opacity duration-300"></div>
-                    <div class="relative h-16 w-16 shrink-0 flex items-center justify-center rounded-2xl bg-gradient-to-br from-red-500 to-orange-600 shadow-xl ring-2 ring-white/20">
+                    <div class="absolute -inset-1 bg-gradient-to-r from-red-600/40 to-red-500/40 rounded-2xl blur-lg opacity-100 transition-opacity duration-300"></div>
+                    <div class="relative h-16 w-16 shrink-0 flex items-center justify-center rounded-2xl bg-gradient-to-br from-red-500 to-red-700 shadow-xl ring-2 ring-white/20">
                         <svg class="h-8 w-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
                         </svg>

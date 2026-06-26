@@ -32,14 +32,28 @@ watch(search, () => {
 });
 watch(estado, () => applyFilters());
 
+// Helper to format dates
+const formatFecha = (d) => {
+    if (!d) return '';
+    const datePart = d.split(/[T ]/)[0];
+    const parts = datePart.split('-');
+    if (parts.length === 3) {
+        return `${parts[2]}/${parts[1]}/${parts[0]}`;
+    }
+    return d;
+};
+
 // ── Modal agregar conductor ──────────────────────────────────
 const showAdd = ref(false);
 const form = useForm({
     nombre:   '',
     dni:      '',
     licencia: '',
+    fecha_licencia_vencimiento: '',
     telefono: '',
     estado:   'activo',
+    fecha_citacion: '',
+    motivo_citacion: '',
 });
 
 const submitAdd = () => {
@@ -47,6 +61,43 @@ const submitAdd = () => {
         onSuccess: () => {
             showAdd.value = false;
             form.reset();
+        },
+    });
+};
+
+// ── Modal editar conductor ───────────────────────────────────
+const showEdit = ref(false);
+const editingConductor = ref(null);
+const editForm = useForm({
+    nombre:   '',
+    dni:      '',
+    licencia: '',
+    fecha_licencia_vencimiento: '',
+    telefono: '',
+    estado:   'activo',
+    fecha_citacion: '',
+    motivo_citacion: '',
+});
+
+const openEdit = (conductor) => {
+    editingConductor.value = conductor;
+    editForm.nombre = conductor.nombre;
+    editForm.dni = conductor.dni;
+    editForm.licencia = conductor.licencia || '';
+    editForm.fecha_licencia_vencimiento = conductor.fecha_licencia_vencimiento || '';
+    editForm.telefono = conductor.telefono || '';
+    editForm.estado = conductor.estado;
+    editForm.fecha_citacion = conductor.fecha_citacion || '';
+    editForm.motivo_citacion = conductor.motivo_citacion || '';
+    showEdit.value = true;
+};
+
+const submitEdit = () => {
+    editForm.put(route('conductores.update', editingConductor.value.id), {
+        onSuccess: () => {
+            showEdit.value = false;
+            editingConductor.value = null;
+            editForm.reset();
         },
     });
 };
@@ -82,6 +133,14 @@ const doBulkDelete = () => {
             selectedIds.value = [];
         },
     });
+};
+
+const quitarCitacion = (conductorId) => {
+    if (confirm('¿Seguro que deseas quitar la citación a este conductor?')) {
+        router.put(route('conductores.quitar-citacion', conductorId), {}, {
+            preserveScroll: true,
+        });
+    }
 };
 
 // ── Estilos estado premium ───────────────────────────────────
@@ -168,25 +227,25 @@ const imprimirPDF = () => {
                     
                     <div class="relative flex flex-wrap gap-2 w-full sm:w-auto">
                         <div class="relative w-full sm:w-auto">
-                            <svg class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-emerald-400/80" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <svg class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-emerald-400 dark:text-[#00ff66] search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                             </svg>
                             <input
                                 v-model="search"
                                 type="search"
                                 placeholder="Nombre, DNI o unidad..."
-                                class="w-full rounded-xl border-0 bg-white/10 py-2.5 pl-9 pr-4 text-sm text-white placeholder-gray-400/80 backdrop-blur-xl focus:bg-white focus:text-alo-black focus:outline-none sm:w-48 transition-all duration-300"
+                                class="w-full rounded-xl border border-white/20 bg-white/15 py-2.5 pl-9 pr-4 text-sm text-white placeholder-white/50 backdrop-blur-xl focus:bg-white focus:text-alo-black focus:outline-none dark:focus:bg-white/20 dark:focus:text-white dark:focus:placeholder-white/50 dark:focus:border-[#00ff66]/60 dark:focus:ring-1 dark:focus:ring-[#00ff66]/30 sm:w-48 transition-all duration-300"
                             />
                         </div>
                         <div class="relative w-full sm:w-auto">
                             <select
                                 v-model="estado"
-                                class="w-full rounded-xl border-0 bg-white/10 px-4 py-2.5 text-sm text-white backdrop-blur-xl focus:bg-white focus:text-alo-black focus:outline-none transition-all duration-300"
+                                class="w-full rounded-xl border border-white/20 bg-white/15 px-4 py-2.5 text-sm text-white backdrop-blur-xl focus:bg-white focus:text-alo-black focus:outline-none dark:focus:bg-white/20 dark:focus:text-white dark:focus:border-[#00ff66]/60 dark:focus:ring-1 dark:focus:ring-[#00ff66]/30 transition-all duration-300"
                             >
-                                <option value="" class="text-alo-black">Todos los estados</option>
-                                <option value="activo"     class="text-alo-black">Activos</option>
-                                <option value="inactivo"   class="text-alo-black">Inactivos</option>
-                                <option value="suspendido" class="text-alo-black">Suspendidos</option>
+                                <option value="" class="bg-white text-alo-black dark:bg-gray-900 dark:text-white">Todos los estados</option>
+                                <option value="activo"     class="bg-white text-alo-black dark:bg-gray-900 dark:text-white">Activos</option>
+                                <option value="inactivo"   class="bg-white text-alo-black dark:bg-gray-900 dark:text-white">Inactivos</option>
+                                <option value="suspendido" class="bg-white text-alo-black dark:bg-gray-900 dark:text-white">Suspendidos</option>
                             </select>
                         </div>
                     </div>
@@ -297,9 +356,23 @@ const imprimirPDF = () => {
                                 </Link>
                                 <span v-else class="text-gray-300">—</span>
                             </td>
-                            <td class="whitespace-nowrap px-4 py-3 font-mono text-sm text-alo-gray-dark">{{ conductor.dni }}</td>
-                            <td class="px-4 py-3 text-sm font-semibold text-alo-black">{{ conductor.nombre }}</td>
-                            <td class="whitespace-nowrap px-4 py-3 text-sm text-alo-gray-dark">{{ conductor.telefono || '—' }}</td>
+                            <td class="px-4 py-3 text-sm">
+                                <div class="font-mono text-sm text-alo-gray-dark">{{ conductor.dni }}</div>
+                            </td>
+                            <td class="px-4 py-3 text-sm font-semibold text-alo-black dark:text-white">{{ conductor.nombre }}</td>
+                            <td class="px-4 py-3 text-sm">
+                                <div class="text-alo-black dark:text-white">{{ conductor.telefono || '—' }}</div>
+                                <div v-if="conductor.fecha_citacion" class="mt-1 rounded bg-amber-50 dark:bg-amber-950/20 border border-amber-200/50 p-1.5 text-[10px] text-amber-800 dark:text-amber-400 flex flex-col gap-1">
+                                    <span>📅 Citado: {{ formatFecha(conductor.fecha_citacion) }}</span>
+                                    <p class="font-normal truncate max-w-[155px] font-semibold" v-if="conductor.motivo_citacion" :title="conductor.motivo_citacion">"{{ conductor.motivo_citacion }}"</p>
+                                    <button
+                                        @click="quitarCitacion(conductor.id)"
+                                        class="mt-1 w-full rounded bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-0.5 px-1 transition text-[9px]"
+                                    >
+                                        ✓ Se reportó
+                                    </button>
+                                </div>
+                            </td>
                             <td class="px-4 py-3">
                                 <span
                                     class="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold capitalize"
@@ -321,6 +394,12 @@ const imprimirPDF = () => {
                                         </svg>
                                         Ver
                                     </Link>
+                                    <button
+                                        @click="openEdit(conductor)"
+                                        class="inline-flex items-center gap-1 rounded-lg bg-blue-50 dark:bg-blue-900/10 px-2.5 py-1 text-xs font-bold text-blue-600 dark:text-blue-400 transition hover:bg-blue-100 dark:hover:bg-blue-900/30"
+                                    >
+                                        Editar
+                                    </button>
                                     <button
                                         @click="confirmDelete = conductor.id"
                                         class="inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-semibold text-alo-red transition hover:bg-red-50"
@@ -347,8 +426,8 @@ const imprimirPDF = () => {
             <!-- Paginación -->
             <div v-if="conductores.links && conductores.links.length > 3" class="flex flex-wrap items-center justify-between gap-2 border-t border-gray-100 px-4 py-3">
                 <p class="text-sm text-alo-gray-dark">
-                    Mostrando <span class="font-bold text-alo-black">{{ conductores.from }}–{{ conductores.to }}</span>
-                    de <span class="font-bold text-alo-black">{{ conductores.total.toLocaleString() }}</span>
+                    Mostrando <span class="font-bold text-alo-black dark:text-white">{{ conductores.from }}–{{ conductores.to }}</span>
+                    de <span class="font-bold text-alo-black dark:text-white">{{ conductores.total.toLocaleString() }}</span>
                 </p>
                 <div class="flex flex-wrap gap-1">
                     <template v-for="link in conductores.links" :key="link.label">
@@ -403,26 +482,33 @@ const imprimirPDF = () => {
                             <p v-if="form.errors.dni" class="mt-1 text-xs text-red-500">{{ form.errors.dni }}</p>
                         </div>
                         <div>
-                            <label class="mb-1 block text-sm font-semibold text-alo-black dark:text-white">Licencia</label>
-                            <input v-model="form.licencia" type="text" maxlength="20"
-                                class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm font-mono focus:border-alo-green focus:outline-none focus:ring-2 focus:ring-alo-green/20"
-                                placeholder="Q00000001" />
+                            <label class="mb-1 block text-sm font-semibold text-alo-black dark:text-white">Teléfono / Celular</label>
+                            <input v-model="form.telefono" type="text" maxlength="20"
+                                class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-alo-green focus:outline-none focus:ring-2 focus:ring-alo-green/20"
+                                placeholder="987654321" />
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="mb-1 block text-sm font-semibold text-alo-black dark:text-white">Estado *</label>
+                            <select v-model="form.estado"
+                                class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-alo-green focus:outline-none">
+                                <option value="activo">Activo</option>
+                                <option value="inactivo">Inactivo</option>
+                                <option value="suspendido">Suspendido</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="mb-1 block text-sm font-semibold text-alo-black dark:text-white">Fecha de Citación</label>
+                            <input v-model="form.fecha_citacion" type="date"
+                                class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-alo-green focus:outline-none focus:ring-2 focus:ring-alo-green/20" />
                         </div>
                     </div>
                     <div>
-                        <label class="mb-1 block text-sm font-semibold text-alo-black dark:text-white">Teléfono / Celular</label>
-                        <input v-model="form.telefono" type="text" maxlength="20"
+                        <label class="mb-1 block text-sm font-semibold text-alo-black dark:text-white">Motivo de Citación</label>
+                        <input v-model="form.motivo_citacion" type="text" maxlength="255"
                             class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-alo-green focus:outline-none focus:ring-2 focus:ring-alo-green/20"
-                            placeholder="987654321" />
-                    </div>
-                    <div>
-                        <label class="mb-1 block text-sm font-semibold text-alo-black dark:text-white">Estado *</label>
-                        <select v-model="form.estado"
-                            class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-alo-green focus:outline-none">
-                            <option value="activo">Activo</option>
-                            <option value="inactivo">Inactivo</option>
-                            <option value="suspendido">Suspendido</option>
-                        </select>
+                            placeholder="Ej: Revisar estado de papeletas o citación programada" />
                     </div>
                     <div class="flex gap-3 pt-2">
                         <button type="button" @click="showAdd = false; form.reset()"
@@ -432,6 +518,81 @@ const imprimirPDF = () => {
                         <button type="submit" :disabled="form.processing"
                             class="flex-1 rounded-lg bg-alo-green py-2 text-sm font-bold text-white transition hover:bg-alo-green-dark disabled:opacity-50">
                             {{ form.processing ? 'Guardando...' : 'Guardar conductor' }}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        </Teleport>
+
+        <!-- ── Modal: Editar Conductor ── -->
+        <Teleport to="body">
+            <div v-if="showEdit" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+            <div class="w-full max-w-md rounded-2xl bg-white shadow-2xl">
+                <div class="flex items-center justify-between border-b border-gray-100 px-6 py-4">
+                    <div>
+                        <h2 class="font-bold text-alo-black dark:text-white">Editar Conductor</h2>
+                        <p class="text-xs text-gray-400 dark:text-gray-300">Modifique los datos del conductor</p>
+                    </div>
+                    <button @click="showEdit = false; editForm.reset()" class="rounded-lg p-1.5 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+                <form @submit.prevent="submitEdit" class="space-y-4 px-6 py-5">
+                    <div>
+                        <label class="mb-1 block text-sm font-semibold text-alo-black dark:text-white">Nombres completos *</label>
+                        <input v-model="editForm.nombre" type="text" required
+                            class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-alo-green focus:outline-none focus:ring-2 focus:ring-alo-green/20"
+                            placeholder="Ej: JUAN PABLO GOMEZ QUISPE" />
+                        <p v-if="editForm.errors.nombre" class="mt-1 text-xs text-red-500">{{ editForm.errors.nombre }}</p>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="mb-1 block text-sm font-semibold text-alo-black dark:text-white">DNI *</label>
+                            <input v-model="editForm.dni" type="text" required maxlength="15"
+                                class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm font-mono focus:border-alo-green focus:outline-none focus:ring-2 focus:ring-alo-green/20"
+                                placeholder="12345678" />
+                            <p v-if="editForm.errors.dni" class="mt-1 text-xs text-red-500">{{ editForm.errors.dni }}</p>
+                        </div>
+                        <div>
+                            <label class="mb-1 block text-sm font-semibold text-alo-black dark:text-white">Teléfono / Celular</label>
+                            <input v-model="editForm.telefono" type="text" maxlength="20"
+                                class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-alo-green focus:outline-none focus:ring-2 focus:ring-alo-green/20"
+                                placeholder="987654321" />
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="mb-1 block text-sm font-semibold text-alo-black dark:text-white">Estado *</label>
+                            <select v-model="editForm.estado"
+                                class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-alo-green focus:outline-none">
+                                <option value="activo">Activo</option>
+                                <option value="inactivo">Inactivo</option>
+                                <option value="suspendido">Suspendido</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="mb-1 block text-sm font-semibold text-alo-black dark:text-white">Fecha de Citación</label>
+                            <input v-model="editForm.fecha_citacion" type="date"
+                                class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-alo-green focus:outline-none focus:ring-2 focus:ring-alo-green/20" />
+                        </div>
+                    </div>
+                    <div>
+                        <label class="mb-1 block text-sm font-semibold text-alo-black dark:text-white">Motivo de Citación</label>
+                        <input v-model="editForm.motivo_citacion" type="text" maxlength="255"
+                            class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-alo-green focus:outline-none focus:ring-2 focus:ring-alo-green/20"
+                            placeholder="Ej: Revisar estado de papeletas o citación programada" />
+                    </div>
+                    <div class="flex gap-3 pt-2">
+                        <button type="button" @click="showEdit = false; editForm.reset()"
+                            class="flex-1 rounded-lg border border-gray-300 py-2 text-sm font-semibold text-gray-600 hover:bg-gray-50 dark:border-white/10 dark:text-gray-300 dark:hover:bg-white/10">
+                            Cancelar
+                        </button>
+                        <button type="submit" :disabled="editForm.processing"
+                            class="flex-1 rounded-lg bg-alo-green py-2 text-sm font-bold text-white transition hover:bg-alo-green-dark disabled:opacity-50">
+                            {{ editForm.processing ? 'Guardando...' : 'Guardar cambios' }}
                         </button>
                     </div>
                 </form>

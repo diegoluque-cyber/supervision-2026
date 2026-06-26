@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Falta;
 use App\Models\Unidad;
 use App\Models\Conductor;
+use App\Models\Papeleta;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -18,7 +19,7 @@ class SupervisionController extends Controller
     public function index(Request $request): Response
     {
         $categoria = $request->string('categoria')->toString() ?: 'supervision';
-        $search    = $request->string('search')->trim()->toString();
+        $search    = ltrim($request->string('search')->trim()->toString(), '#');
 
         // Validar categoría
         if (! array_key_exists($categoria, Unidad::CATEGORIAS)) {
@@ -28,14 +29,22 @@ class SupervisionController extends Controller
         // Buscar unidad por código exacto dentro de la categoría
         $unidadEncontrada = null;
         if ($search !== '') {
-            $unidadEncontrada = Unidad::with(['conductor', 'faltas' => fn ($q) => $q->orderByDesc('fecha_falta')])
+            $unidadEncontrada = Unidad::with([
+                'conductor', 
+                'faltas' => fn ($q) => $q->orderByDesc('fecha_falta'), 
+                'papeletas' => fn ($q) => $q->orderByDesc('fecha_emision')
+            ])
                 ->where('categoria', $categoria)
                 ->whereRaw('UPPER(codigo) = ?', [strtoupper($search)])
                 ->first();
 
             // Si no encuentra en la categoría, buscar en todas
             if (! $unidadEncontrada) {
-                $unidadEncontrada = Unidad::with(['conductor', 'faltas' => fn ($q) => $q->orderByDesc('fecha_falta')])
+                $unidadEncontrada = Unidad::with([
+                    'conductor', 
+                    'faltas' => fn ($q) => $q->orderByDesc('fecha_falta'), 
+                    'papeletas' => fn ($q) => $q->orderByDesc('fecha_emision')
+                ])
                     ->whereRaw('UPPER(codigo) = ?', [strtoupper($search)])
                     ->first();
             }
@@ -85,9 +94,33 @@ class SupervisionController extends Controller
             $stats[$tipo] = Falta::where('categoria', $categoria)->where('tipo', $tipo)->count();
         }
 
+        // Citaciones activas
+        $citados = Conductor::whereNotNull('fecha_citacion')
+            ->with('unidad')
+            ->orderBy('fecha_citacion')
+            ->get()
+            ->map(fn ($c) => [
+                'id' => $c->id,
+                'nombre' => $c->nombre,
+                'dni' => $c->dni,
+                'telefono' => $c->telefono,
+                'fecha_citacion' => $c->fecha_citacion->format('d/m/Y'),
+                'motivo_citacion' => $c->motivo_citacion,
+                'unidad_codigo' => $c->unidad->codigo ?? null,
+                'unidad_placa' => $c->unidad->placa ?? null,
+                'unidad_categoria' => $c->unidad->categoria ?? null,
+                'unidad_categoria_label' => $c->unidad->categoria_label ?? null,
+            ]);
+
+        $categoriasFiltradas = array_filter(
+            Unidad::CATEGORIAS,
+            fn($key) => $key !== 'supervisor' && $key !== 'supervisor_general',
+            ARRAY_FILTER_USE_KEY
+        );
+
         return Inertia::render('Supervision/Index', [
             'categoria'        => $categoria,
-            'categorias'       => Unidad::CATEGORIAS,
+            'categorias'       => $categoriasFiltradas,
             'search'           => $search,
             'unidadEncontrada' => $unidadEncontrada ? [
                 'id'              => $unidadEncontrada->id,
@@ -107,6 +140,8 @@ class SupervisionController extends Controller
                     'nombre'  => $unidadEncontrada->conductor->nombre,
                     'dni'     => $unidadEncontrada->conductor->dni,
                     'telefono'=> $unidadEncontrada->conductor->telefono,
+                    'fecha_citacion' => $unidadEncontrada->conductor->fecha_citacion ? $unidadEncontrada->conductor->fecha_citacion->format('d/m/Y') : null,
+                    'motivo_citacion' => $unidadEncontrada->conductor->motivo_citacion,
                 ] : null,
                 'faltas'    => $unidadEncontrada->faltas->map(fn (Falta $f) => [
                     'id'          => $f->id,
@@ -117,11 +152,22 @@ class SupervisionController extends Controller
                     'fotos'       => $f->fotos ?? [],
                     'supervisor'  => $f->supervisor,
                     'fecha_falta' => $f->fecha_falta->format('d/m/Y H:i'),
+                    'fecha_alarma' => $f->fecha_alarma ? $f->fecha_alarma->format('d/m/Y') : null,
+                ])->values(),
+                'papeletas' => $unidadEncontrada->papeletas->map(fn (Papeleta $p) => [
+                    'id'            => $p->id,
+                    'nro_papeleta'  => $p->nro_papeleta,
+                    'monto'         => $p->monto,
+                    'fecha_emision' => $p->fecha_emision->format('d/m/Y'),
+                    'infraccion'    => $p->infraccion,
+                    'estado_pago'   => $p->estado_pago,
+                    'fecha_pago'    => $p->fecha_pago ? $p->fecha_pago->format('d/m/Y') : null,
                 ])->values(),
             ] : null,
             'historial' => $historial,
             'stats'     => $stats,
             'tipos'     => Falta::TIPOS,
+            'citados'   => $citados,
         ]);
     }
 
@@ -131,12 +177,14 @@ class SupervisionController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $data = $request->validate([
-            'unidad_id'   => ['required', 'exists:unidades,id'],
-            'tipo'        => ['required', 'in:observacion,falta_grave,expulsado,tarifa_negociable,libre,cancela_servicios_corporativos,bloqueo_aplicativo'],
-            'descripcion' => ['required', 'string', 'max:1000'],
-            'fotos'       => ['nullable', 'array'],
-            'fotos.*'     => ['image', 'mimes:jpeg,png,jpg,webp', 'max:3072'],
-            'categoria'   => ['nullable', 'string', 'in:' . implode(',', array_keys(Unidad::CATEGORIAS))],
+            'unidad_id'    => ['required', 'exists:unidades,id'],
+            'tipo'         => ['required', 'in:observacion,falta_grave,expulsado,tarifa_negociable,libre,cancela_servicios_corporativos,bloqueo_aplicativo'],
+            'descripcion'  => ['required', 'string', 'max:1000'],
+            'fotos'        => ['nullable', 'array'],
+            'fotos.*'      => ['image', 'mimes:jpeg,png,jpg,webp', 'max:3072'],
+            'categoria'    => ['nullable', 'string', 'in:' . implode(',', array_keys(Unidad::CATEGORIAS))],
+            'fecha_falta'  => ['nullable', 'date'],
+            'fecha_alarma' => ['nullable', 'date'],
         ]);
 
         $unidad = Unidad::findOrFail($data['unidad_id']);
@@ -189,7 +237,7 @@ class SupervisionController extends Controller
             }
         }
 
-        Falta::create([
+        $falta = Falta::create([
             'unidad_id'    => $unidad->id,
             'conductor_id' => $unidad->conductor_id,
             'tipo'         => $data['tipo'],
@@ -197,8 +245,20 @@ class SupervisionController extends Controller
             'descripcion'  => $data['descripcion'],
             'fotos'        => $fotos,
             'supervisor'   => auth()->user()->name,
-            'fecha_falta'  => now(),
+            'fecha_falta'  => $data['fecha_falta'] ?? now(),
+            'fecha_alarma' => $data['fecha_alarma'] ?? null,
+            'alarma_leida' => false,
         ]);
+
+        if (!empty($data['fecha_alarma']) && $unidad->conductor_id) {
+            $conductor = Conductor::find($unidad->conductor_id);
+            if ($conductor) {
+                $conductor->update([
+                    'fecha_citacion'  => $data['fecha_alarma'],
+                    'motivo_citacion' => $data['descripcion'],
+                ]);
+            }
+        }
 
         return redirect()->route('supervision.index', [
             'categoria' => $categoria,
@@ -284,5 +344,26 @@ class SupervisionController extends Controller
         $categoriaLabel = Unidad::CATEGORIAS[$categoria] ?? 'General';
 
         return view('exports.faltas_print', compact('faltas', 'categoriaLabel', 'fecha_desde', 'fecha_hasta'));
+    }
+
+    /**
+     * Marcar una alarma de falta como leída/descartada.
+     */
+    public function descartarAlarma(Falta $falta): RedirectResponse
+    {
+        $falta->update(['alarma_leida' => true]);
+
+        // Si esta falta tiene un conductor asociado y tiene una citación activa, removerla también
+        if ($falta->conductor_id) {
+            $conductor = Conductor::find($falta->conductor_id);
+            if ($conductor) {
+                $conductor->update([
+                    'fecha_citacion' => null,
+                    'motivo_citacion' => null,
+                ]);
+            }
+        }
+
+        return back()->with('success', 'Alarma y citación asociada descartadas.');
     }
 }

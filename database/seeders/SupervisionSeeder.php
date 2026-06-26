@@ -26,7 +26,7 @@ class SupervisionSeeder extends Seeder
         DB::table('conductores')->truncate();
         DB::statement('SET FOREIGN_KEY_CHECKS=1');
 
-        $categorias = ['supervision', 'san_pablo', 'cerro_verde', 'mitsui', 'otros'];
+        $categorias = ['supervision', 'san_pablo', 'cerro_verde', 'mitsui', 'conductor'];
         $marcas = ['Toyota', 'Hyundai', 'Kia', 'Chevrolet', 'Nissan'];
         $modelos = ['Yaris', 'Accent', 'Rio', 'Sail', 'Versa'];
         $estadosUnidad = ['activo', 'activo', 'activo', 'inactivo', 'mantenimiento'];
@@ -78,5 +78,9 @@ class SupervisionSeeder extends Seeder
 
             DB::table('unidades')->insert($unidadesBatch);
         }
+
+        $supervisorCodes = ['1390', '84', '01', '1', '10', '1426', '1484', '1998', '2137', '287', '265', '531', '1079', '28', '1150', '1050', '980', '81', '47', 'P47'];
+        DB::table('unidades')->whereIn('codigo', $supervisorCodes)->update(['categoria' => 'supervisor']);
+        DB::table('unidades')->where('codigo', '1015')->update(['categoria' => 'supervisor_general']);
     }
 }

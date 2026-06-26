@@ -1,6 +1,6 @@
 <script setup>
 import Alo45Layout from '@/Layouts/Alo45Layout.vue';
-import { Head, router, useForm, usePage } from '@inertiajs/vue3';
+import { Head, Link, router, useForm, usePage } from '@inertiajs/vue3';
 import { computed, ref, onMounted, onUnmounted } from 'vue';
 import { route } from '../../../../vendor/tightenco/ziggy';
 
@@ -167,6 +167,28 @@ onMounted(() => {
                 </button>
             </div>
         </template>
+
+        <!-- Tabs de Selección -->
+        <div class="mb-6 border-b border-gray-200 dark:border-neutral-800 flex gap-4">
+            <Link
+                :href="route('supervisores.index')"
+                class="pb-3 text-sm font-black border-b-2 px-1 transition duration-200"
+                :class="route().current('supervisores.index')
+                    ? 'border-emerald-500 text-emerald-600 dark:text-[#00ff66]'
+                    : 'border-transparent text-gray-500 hover:text-gray-900 dark:text-neutral-400 dark:hover:text-white'"
+            >
+                👤 Supervisores Registrados
+            </Link>
+            <Link
+                :href="route('supervisores.asistencia.index')"
+                class="pb-3 text-sm font-black border-b-2 px-1 transition duration-200"
+                :class="route().current('supervisores.asistencia.*')
+                    ? 'border-emerald-500 text-emerald-600 dark:text-[#00ff66]'
+                    : 'border-transparent text-gray-500 hover:text-gray-900 dark:text-neutral-400 dark:hover:text-white'"
+            >
+                📅 Lista de Asistencia (Miércoles)
+            </Link>
+        </div>
 
         <div v-if="successMsg" class="mb-4 flex items-center justify-center gap-2.5 rounded-xl border border-alo-green bg-green-50 px-5 py-3.5 text-sm font-semibold text-alo-green shadow-sm">
             <svg class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">

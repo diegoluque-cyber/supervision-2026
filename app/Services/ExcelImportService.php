@@ -310,11 +310,18 @@ class ExcelImportService
         $anio   = (int) trim($data['vehi_anio'] ?? '');
         $anio   = ($anio >= 1990 && $anio <= 2035) ? $anio : null;
 
+        if ($codigo === '1015') {
+            $categoria = 'supervisor_general';
+        } else {
+            $supervisorCodes = ['1390', '84', '01', '1', '10', '1426', '1484', '1998', '2137', '287', '265', '531', '1079', '28', '1150', '1050', '980', '81', '47', 'P47'];
+            $categoria = in_array($codigo, $supervisorCodes) ? 'supervisor' : 'conductor';
+        }
+
         return Unidad::updateOrCreate(
             ['codigo' => $codigo],
             [
                 'placa'        => $placa,
-                'categoria'    => 'otros',
+                'categoria'    => $categoria,
                 'estado'       => 'activo',
                 'conductor_id' => $conductor->id,
                 'marca'        => $marca,

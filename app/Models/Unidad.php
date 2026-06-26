@@ -16,7 +16,9 @@ class Unidad extends Model
         'san_pablo' => 'San Pablo',
         'cerro_verde' => 'Cerro Verde',
         'mitsui' => 'Mitsui',
-        'otros' => 'Otros',
+        'conductor' => 'Conductor',
+        'supervisor' => 'Supervisor',
+        'supervisor_general' => 'Supervisor General',
     ];
 
     public const ESTADOS = [
@@ -52,6 +54,11 @@ class Unidad extends Model
     public function faltas(): HasMany
     {
         return $this->hasMany(\App\Models\Falta::class);
+    }
+
+    public function papeletas(): HasMany
+    {
+        return $this->hasMany(\App\Models\Papeleta::class);
     }
 
     public function getCategoriaLabelAttribute(): string

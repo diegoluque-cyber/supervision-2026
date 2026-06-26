@@ -119,11 +119,10 @@
         <thead>
             <tr>
                 <th style="width: 5%;">#</th>
-                <th style="width: 35%;">Nombre Completo</th>
-                <th style="width: 15%;">DNI</th>
-                <th style="width: 15%;">Licencia</th>
-                <th style="width: 15%;">Teléfono</th>
-                <th style="width: 15%;">Estado</th>
+                <th style="width: 45%;">Nombre Completo</th>
+                <th style="width: 20%;">DNI</th>
+                <th style="width: 20%;">Teléfono</th>
+                <th style="width: 10%;">Estado</th>
             </tr>
         </thead>
         <tbody>
@@ -132,7 +131,6 @@
                     <td>{{ $index + 1 }}</td>
                     <td style="font-weight: bold;">{{ $c->nombre }}</td>
                     <td>{{ $c->dni }}</td>
-                    <td>{{ $c->licencia ?? '—' }}</td>
                     <td>{{ $c->telefono ?? '—' }}</td>
                     <td>
                         <span class="badge badge-{{ $c->estado }}">
@@ -142,7 +140,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="6" style="text-align: center; color: #9ca3af; font-style: italic;">
+                    <td colspan="5" style="text-align: center; color: #9ca3af; font-style: italic;">
                         No se encontraron conductores.
                     </td>
                 </tr>

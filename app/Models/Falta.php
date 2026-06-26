@@ -38,12 +38,17 @@ class Falta extends Model
         'fotos',
         'supervisor',
         'fecha_falta',
+        'fecha_alarma',
+        'alarma_leida',
+        'operativo_id',
     ];
 
     protected function casts(): array
     {
         return [
             'fecha_falta' => 'datetime',
+            'fecha_alarma' => 'date',
+            'alarma_leida' => 'boolean',
             'fotos' => 'array',
         ];
     }
@@ -56,6 +61,11 @@ class Falta extends Model
     public function conductor(): BelongsTo
     {
         return $this->belongsTo(Conductor::class);
+    }
+
+    public function operativo(): BelongsTo
+    {
+        return $this->belongsTo(Operativo::class);
     }
 
     public function getTipoLabelAttribute(): string

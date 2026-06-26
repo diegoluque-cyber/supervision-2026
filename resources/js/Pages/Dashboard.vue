@@ -78,7 +78,7 @@ const tipoIcon = {
 const tipoColor = {
     observacion:        'bg-amber-50/80 backdrop-blur-xl text-amber-900 border border-amber-200/50 shadow-sm dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/30',
     falta_grave:        'bg-orange-50/80 backdrop-blur-xl text-orange-900 border border-orange-200/50 shadow-sm dark:bg-orange-500/10 dark:text-orange-400 dark:border-orange-500/30',
-    expulsado:          'bg-red-50/80 backdrop-blur-xl text-red-800 border border-red-200/50 shadow-sm dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/30',
+    expulsado:          'bg-red-500/15 text-red-600 border border-red-500/35 shadow-[0_0_8px_rgba(239,68,68,0.15)] dark:bg-red-500/20 dark:text-red-300 dark:border-red-500/55 dark:shadow-[0_0_12px_rgba(239,68,68,0.3)] font-bold',
     tarifa_negociable:  'bg-blue-50/80 backdrop-blur-xl text-blue-900 border border-blue-200/50 shadow-sm dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/30',
     libre:              'bg-emerald-50/80 backdrop-blur-xl text-emerald-900 border border-emerald-200/50 shadow-sm dark:bg-emerald-500/10 dark:text-[#00ff66] dark:border-[#00ff66]/30',
     lista_negra:        'bg-slate-50/80 backdrop-blur-xl text-slate-800 border border-slate-200/50 shadow-sm dark:bg-slate-800/40 dark:text-slate-400 dark:border-slate-700/30',
@@ -117,8 +117,8 @@ const categoryCards = [
         glow: 'rgba(139,92,246,0.4)',
     },
     {
-        key: 'otros',
-        label: 'Tarifa negociable',
+        key: 'conductor',
+        label: 'Tarifa Negociable',
         desc: 'Flota general',
         bgImage: '/img/alo45.jpg',
         glow: 'rgba(99,102,241,0.4)',
@@ -154,7 +154,7 @@ const categoryCards = [
                         <!-- Buscador Express -->
                         <div class="mt-4 max-w-sm relative">
                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <svg class="h-4 w-4 text-emerald-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="h-4 w-4 text-emerald-300 dark:text-[#00ff66] search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                                 </svg>
                             </div>
@@ -305,7 +305,7 @@ const categoryCards = [
                         <!-- 3D Watermark Text Behind Content -->
                         <div class="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden z-0">
                             <span class="text-4xl sm:text-5xl font-black uppercase tracking-tighter text-white/5 opacity-30 transition-all duration-500 group-hover:text-white/10 group-hover:scale-125 group-hover:opacity-100 group-hover:rotate-2 select-none pointer-events-none font-sans">
-                                {{ card.key === 'otros' ? 'TARIFA' : (card.key === 'lista_negra' ? 'BLOQUEO' : card.label) }}
+                                {{ card.key === 'lista_negra' ? 'BLOQUEO' : card.label }}
                             </span>
                         </div>
 
@@ -330,7 +330,7 @@ const categoryCards = [
                             
                             <div class="mt-2 flex items-baseline gap-1">
                                 <span class="text-2xl sm:text-3xl xl:text-4xl font-black text-white stat-number">
-                                    {{ (stats.faltas_categorias[card.key] || 0).toLocaleString() }}
+                                    {{ card.key === 'lista_negra' ? (stats.faltas_categorias.lista_negra || 0).toLocaleString() : (stats.faltas_categorias[card.key] || 0).toLocaleString() }}
                                 </span>
                                 <span class="text-[8px] sm:text-[10px] font-semibold text-white/50 font-sans">
                                     {{ card.key === 'lista_negra' ? 'bloqueados' : 'faltas' }}

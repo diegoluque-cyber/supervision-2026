@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Conductor;
+use App\Models\Falta;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -12,7 +13,7 @@ class ConductorController extends Controller
 {
     public function index(Request $request): Response
     {
-        $search = $request->string('search')->trim()->toString();
+        $search = ltrim($request->string('search')->trim()->toString(), '#');
         $estado = $request->string('estado')->toString();
 
         $query = Conductor::query()->with('unidad');
@@ -70,17 +71,50 @@ class ConductorController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
+        $request->merge([
+            'fecha_licencia_vencimiento' => $request->filled('fecha_licencia_vencimiento') ? $request->input('fecha_licencia_vencimiento') : null,
+            'fecha_citacion'             => $request->filled('fecha_citacion') ? $request->input('fecha_citacion') : null,
+            'motivo_citacion'            => $request->filled('motivo_citacion') ? $request->input('motivo_citacion') : null,
+        ]);
+
         $data = $request->validate([
-            'nombre'   => ['required', 'string', 'max:120'],
-            'dni'      => ['required', 'string', 'max:15', 'unique:conductores,dni'],
-            'licencia' => ['nullable', 'string', 'max:20'],
-            'telefono' => ['nullable', 'string', 'max:20'],
-            'estado'   => ['required', 'in:activo,inactivo,suspendido'],
+            'nombre'                     => ['required', 'string', 'max:120'],
+            'dni'                        => ['required', 'string', 'max:15', 'unique:conductores,dni'],
+            'licencia'                   => ['nullable', 'string', 'max:20'],
+            'fecha_licencia_vencimiento' => ['nullable', 'date'],
+            'telefono'                   => ['nullable', 'string', 'max:20'],
+            'estado'                     => ['required', 'in:activo,inactivo,suspendido'],
+            'fecha_citacion'             => ['nullable', 'date'],
+            'motivo_citacion'            => ['nullable', 'string', 'max:255'],
         ]);
 
         Conductor::create($data);
 
         return back()->with('success', 'Conductor agregado correctamente.');
+    }
+
+    public function update(Request $request, Conductor $conductor): RedirectResponse
+    {
+        $request->merge([
+            'fecha_licencia_vencimiento' => $request->filled('fecha_licencia_vencimiento') ? $request->input('fecha_licencia_vencimiento') : null,
+            'fecha_citacion'             => $request->filled('fecha_citacion') ? $request->input('fecha_citacion') : null,
+            'motivo_citacion'            => $request->filled('motivo_citacion') ? $request->input('motivo_citacion') : null,
+        ]);
+
+        $data = $request->validate([
+            'nombre'                     => ['required', 'string', 'max:120'],
+            'dni'                        => ['required', 'string', 'max:15', 'unique:conductores,dni,' . $conductor->id],
+            'licencia'                   => ['nullable', 'string', 'max:20'],
+            'fecha_licencia_vencimiento' => ['nullable', 'date'],
+            'telefono'                   => ['nullable', 'string', 'max:20'],
+            'estado'                     => ['required', 'in:activo,inactivo,suspendido'],
+            'fecha_citacion'             => ['nullable', 'date'],
+            'motivo_citacion'            => ['nullable', 'string', 'max:255'],
+        ]);
+
+        $conductor->update($data);
+
+        return back()->with('success', 'Conductor actualizado correctamente.');
     }
 
     public function destroy(Conductor $conductor): RedirectResponse
@@ -117,7 +151,7 @@ class ConductorController extends Controller
 
     public function printReport(Request $request)
     {
-        $search = $request->string('search')->trim()->toString();
+        $search = ltrim($request->string('search')->trim()->toString(), '#');
         $estado = $request->string('estado')->toString();
 
         $query = Conductor::query()->with('unidad');
@@ -139,5 +173,20 @@ class ConductorController extends Controller
         $conductores = $query->orderBy('nombre')->get();
 
         return view('exports.conductores_print', compact('conductores', 'estado', 'search'));
+    }
+
+    public function quitarCitacion(Conductor $conductor): RedirectResponse
+    {
+        $conductor->update([
+            'fecha_citacion' => null,
+            'motivo_citacion' => null,
+        ]);
+
+        // También marcar como leídas las alarmas de retorno asociadas a este conductor
+        Falta::where('conductor_id', $conductor->id)
+            ->where('alarma_leida', false)
+            ->update(['alarma_leida' => true]);
+
+        return back()->with('success', "Citación de {$conductor->nombre} removida y alarmas asociadas marcadas como leídas.");
     }
 }

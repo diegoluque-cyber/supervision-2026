@@ -14,12 +14,14 @@ class UnidadController extends Controller
     public function index(Request $request): Response
     {
         $categoria = $request->string('categoria')->toString();
-        $search = $request->string('search')->trim()->toString();
+        $search = ltrim($request->string('search')->trim()->toString(), '#');
 
         $query = Unidad::query()->with('conductor');
 
         if ($categoria && array_key_exists($categoria, Unidad::CATEGORIAS)) {
-            $query->where('categoria', $categoria)->whereHas('faltas');
+            $query->whereHas('faltas', function ($q) use ($categoria) {
+                $q->where('categoria', $categoria);
+            });
         }
 
         if ($search !== '') {
@@ -41,8 +43,16 @@ class UnidadController extends Controller
             'mantenimiento' => Unidad::where('estado', 'mantenimiento')->count(),
             'inactivo' => Unidad::where('estado', 'inactivo')->count(),
         ];
-        foreach (array_keys(Unidad::CATEGORIAS) as $cat) {
-            $stats[$cat] = Unidad::where('categoria', $cat)->whereHas('faltas')->count();
+
+        // Filtrar categorías para excluir 'supervisor' y 'supervisor_general' de los filtros y contadores superiores
+        $categoriasFiltradas = array_filter(
+            Unidad::CATEGORIAS,
+            fn($key) => $key !== 'supervisor' && $key !== 'supervisor_general',
+            ARRAY_FILTER_USE_KEY
+        );
+
+        foreach (array_keys($categoriasFiltradas) as $cat) {
+            $stats[$cat] = \App\Models\Falta::where('categoria', $cat)->count();
         }
 
         return Inertia::render('Unidades/Index', [
@@ -80,7 +90,7 @@ class UnidadController extends Controller
     {
         $filters = [
             'categoria' => $request->string('categoria')->toString(),
-            'search' => $request->string('search')->trim()->toString(),
+            'search' => ltrim($request->string('search')->trim()->toString(), '#'),
         ];
 
         $filename = 'padron_unidades_' . now()->format('Ymd_His') . '.xlsx';

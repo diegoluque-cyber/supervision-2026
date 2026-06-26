@@ -48,7 +48,7 @@ const tabs = [
     { key: 'san_pablo', label: 'San Pablo' },
     { key: 'cerro_verde', label: 'Cerro Verde' },
     { key: 'mitsui', label: 'Mitsui' },
-    { key: 'otros', label: 'Tarifa negociable' },
+    { key: 'conductor', label: 'Tarifa Negociable' },
 ];
 
 const categoryImages = {
@@ -57,7 +57,7 @@ const categoryImages = {
     san_pablo:    '/img/san_pablo.jpg',
     cerro_verde:  '/img/cerro_verde.png',
     mitsui:       '/img/mitsui.png',
-    otros:        '/img/alo45.jpg',
+    conductor:    '/img/alo45.jpg',
 };
 
 const applyFilters = (categoria = props.filters.categoria) => {
@@ -90,7 +90,7 @@ const statsCards = [
     { label: 'San Pablo', key: 'san_pablo', color: 'text-blue-600', bg: 'bg-blue-50', icon: 'M4 16V11a1 1 0 011-1h2m-3 6v3h2v-3M4 16h16m0 0v3h-2v-3M20 16V6a1 1 0 00-1-1H7a1 1 0 00-1 1v10m14 0h-2M6 16H4m2 0h2m8 0h2M9 14h2m4 0h2M9 10h6' },
     { label: 'Cerro Verde', key: 'cerro_verde', color: 'text-emerald-600', bg: 'bg-emerald-50', icon: 'M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9' },
     { label: 'Mitsui', key: 'mitsui', color: 'text-purple-600', bg: 'bg-purple-50', icon: 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4' },
-    { label: 'Tarifa negociable', key: 'otros', color: 'text-gray-500', bg: 'bg-gray-100', icon: 'M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4' },
+    { label: 'Tarifa Negociable', key: 'conductor', color: 'text-gray-500', bg: 'bg-gray-100', icon: 'M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4' },
 ];
 
 // ── Atajos y Reloj ────────────────────────────────────────
@@ -166,14 +166,14 @@ const exportarExcel = () => {
                     <div class="relative group w-full sm:w-auto">
                         <div class="absolute -inset-0.5 bg-gradient-to-r from-emerald-500/30 to-teal-500/30 rounded-xl blur opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                         <div class="relative">
-                            <svg class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-emerald-400/80" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <svg class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-emerald-400 dark:text-[#00ff66] search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                             </svg>
                             <input
                                 v-model="search"
                                 type="search"
                                 placeholder="Código, placa o conductor..."
-                                class="w-full rounded-xl border-0 bg-white/10 py-2.5 pl-9 pr-4 text-sm text-white placeholder-gray-400/80 backdrop-blur-xl focus:bg-white focus:text-alo-black focus:outline-none focus:placeholder-gray-400 sm:w-56 transition-all duration-300"
+                                class="w-full rounded-xl border border-white/20 bg-white/15 py-2.5 pl-9 pr-4 text-sm text-white placeholder-white/50 backdrop-blur-xl focus:bg-white focus:text-alo-black focus:outline-none focus:placeholder-gray-400 dark:focus:bg-white/20 dark:focus:text-white dark:focus:placeholder-white/50 dark:focus:border-[#00ff66]/60 dark:focus:ring-1 dark:focus:ring-[#00ff66]/30 sm:w-56 transition-all duration-300"
                             />
                         </div>
                     </div>
@@ -208,7 +208,7 @@ const exportarExcel = () => {
                 <!-- 3D Watermark Text Behind Content -->
                 <div class="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden z-0">
                     <span class="text-3xl font-black uppercase tracking-tighter text-white/5 opacity-30 transition-all duration-500 group-hover:text-white/10 group-hover:scale-125 group-hover:opacity-100 group-hover:rotate-2 select-none pointer-events-none font-sans">
-                        {{ card.key === 'otros' ? 'TARIFA' : (card.key === 'total' ? 'TOTAL' : card.label) }}
+                        {{ card.key === 'conductor' ? 'TARIFA NEGOCIABLE' : (card.key === 'total' ? 'TOTAL' : card.label) }}
                     </span>
                 </div>
 
@@ -291,12 +291,12 @@ const exportarExcel = () => {
                             <td class="whitespace-nowrap px-4 py-3 text-sm font-black text-alo-green">
                                 #{{ unidad.codigo }}
                             </td>
-                            <td class="whitespace-nowrap px-4 py-3 font-mono text-sm font-semibold text-alo-black">{{ unidad.placa }}</td>
+                            <td class="whitespace-nowrap px-4 py-3 font-mono text-sm font-semibold text-alo-black dark:text-white">{{ unidad.placa }}</td>
                             <td class="whitespace-nowrap px-4 py-3 text-sm text-alo-gray-dark">
                                 {{ categorias[unidad.categoria] }}
                             </td>
-                            <td class="max-w-[180px] px-4 py-3 text-sm text-alo-black">
-                                <span v-if="unidad.conductor" class="truncate block">{{ unidad.conductor.nombre }}</span>
+                            <td class="whitespace-nowrap px-4 py-3 text-sm text-alo-black dark:text-white">
+                                <span v-if="unidad.conductor" class="font-bold">{{ unidad.conductor.nombre }}</span>
                                 <span v-else class="text-gray-300">—</span>
                             </td>
                             <td class="whitespace-nowrap px-4 py-3 text-sm text-alo-gray-dark">
@@ -341,8 +341,8 @@ const exportarExcel = () => {
                 class="flex flex-wrap items-center justify-between gap-2 border-t border-gray-100 px-4 py-3"
             >
                 <p class="text-sm text-alo-gray-dark">
-                    Mostrando <span class="font-bold text-alo-black">{{ unidades.from }}–{{ unidades.to }}</span>
-                    de <span class="font-bold text-alo-black">{{ unidades.total.toLocaleString() }}</span>
+                    Mostrando <span class="font-bold text-alo-black dark:text-white">{{ unidades.from }}–{{ unidades.to }}</span>
+                    de <span class="font-bold text-alo-black dark:text-white">{{ unidades.total.toLocaleString() }}</span>
                 </p>
                 <div class="flex flex-wrap gap-1">
                     <template v-for="link in unidades.links" :key="link.label">

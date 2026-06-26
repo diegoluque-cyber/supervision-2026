@@ -13,9 +13,20 @@ class Conductor extends Model
         'nombre',
         'dni',
         'licencia',
+        'fecha_licencia_vencimiento',
         'telefono',
         'estado',
+        'fecha_citacion',
+        'motivo_citacion',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'fecha_licencia_vencimiento' => 'date',
+            'fecha_citacion' => 'date',
+        ];
+    }
 
     public function unidad(): HasOne
     {

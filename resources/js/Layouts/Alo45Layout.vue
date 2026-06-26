@@ -9,27 +9,39 @@ const showingMobile = ref(false);
 const scrolled = ref(false);
 
 // ── Dark Mode ─────────────────────────────────────────────
-const isDark = ref(false);
-
-const toggleTheme = () => {
-    isDark.value = !isDark.value;
-    document.documentElement.classList.toggle('dark', isDark.value);
-    localStorage.setItem('alo45-theme', isDark.value ? 'dark' : 'light');
-    // Add transition class temporarily for smooth switch
-    document.documentElement.classList.add('theme-transition');
-    setTimeout(() => document.documentElement.classList.remove('theme-transition'), 500);
-};
+const isDark = ref(true);
 
 // ── Toast global ──────────────────────────────────────────
 const flashSuccess = computed(() => page.props.flash?.success);
+const flashWarning = computed(() => page.props.flash?.warning);
+
+const toastMessage = ref('');
+const toastType = ref('success'); // 'success' or 'warning'
 const showToast = ref(false);
 let toastTimer = null;
 
-watch(flashSuccess, (msg) => {
-    if (msg) {
+const triggerToast = (msg, type) => {
+    showToast.value = false;
+    setTimeout(() => {
+        toastMessage.value = msg;
+        toastType.value = type;
         showToast.value = true;
         clearTimeout(toastTimer);
         toastTimer = setTimeout(() => { showToast.value = false; }, 4500);
+    }, 50);
+};
+
+watch(flashSuccess, (msg) => {
+    if (msg) {
+        triggerToast(msg, 'success');
+        page.props.flash.success = null;
+    }
+}, { immediate: true });
+
+watch(flashWarning, (msg) => {
+    if (msg) {
+        triggerToast(msg, 'warning');
+        page.props.flash.warning = null;
     }
 }, { immediate: true });
 
@@ -43,6 +55,9 @@ const navItems = [
     { name: 'Supervisión',  route: 'supervision.index', icon: 'M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z' },
     { name: 'Unidades',     route: 'unidades.index',    icon: 'M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0' },
     { name: 'Conductores',  route: 'conductores.index', icon: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z' },
+    { name: 'Caja',         route: 'caja.index',        icon: 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z' },
+    { name: 'Sanciones',    route: 'sanciones.index',   icon: 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z' },
+    { name: 'Operativos',   route: 'operativos.index',  icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01' },
     { name: 'Lista Negra',  route: 'blacklist.index',   icon: 'M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636' },
     { name: 'Importar',     route: 'importar.index',    icon: 'M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12' },
     { name: 'Supervisores', route: 'supervisores.index', icon: 'M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z' },
@@ -50,21 +65,78 @@ const navItems = [
 
 const isActive = (routeName) => route().current(routeName);
 
+// ── Alarmas & Notificaciones ──────────────────────────────
+const showAlarmsDropdown = ref(false);
+const soundPlayed = ref(false);
+const alarmsDropdownRef = ref(null);
+const bellButtonRef = ref(null);
+
+const closeDropdownsOnClickOutside = (event) => {
+    if (showAlarmsDropdown.value) {
+        const clickedInsideDropdown = alarmsDropdownRef.value && alarmsDropdownRef.value.contains(event.target);
+        const clickedInsideButton = bellButtonRef.value && bellButtonRef.value.contains(event.target);
+        if (!clickedInsideDropdown && !clickedInsideButton) {
+            showAlarmsDropdown.value = false;
+        }
+    }
+};
+
+const playAlarmSound = () => {
+    try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const playBeep = (freq, time, duration) => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, time);
+            gain.gain.setValueAtTime(0, time);
+            gain.gain.linearRampToValueAtTime(0.25, time + 0.05);
+            gain.gain.exponentialRampToValueAtTime(0.001, time + duration);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(time);
+            osc.stop(time + duration);
+        };
+        // Premium double chime
+        playBeep(523.25, ctx.currentTime, 0.25); // C5
+        playBeep(659.25, ctx.currentTime + 0.12, 0.4); // E5
+    } catch (e) {
+        console.error("AudioContext failed: ", e);
+    }
+};
+
+const alarmsCount = computed(() => page.props.alarms?.total || 0);
+
+watch(alarmsCount, (newVal, oldVal) => {
+    if (newVal > (oldVal || 0)) {
+        playAlarmSound();
+    }
+});
+
 const handleScroll = () => { scrolled.value = window.scrollY > 10; };
 onMounted(() => {
     window.addEventListener('scroll', handleScroll);
-    // Restore saved theme
-    const saved = localStorage.getItem('alo45-theme');
-    if (saved === 'dark') {
-        isDark.value = true;
-        document.documentElement.classList.add('dark');
+    window.addEventListener('click', closeDropdownsOnClickOutside);
+    // Force dark mode
+    isDark.value = true;
+    document.documentElement.classList.add('dark');
+    localStorage.setItem('alo45-theme', 'dark');
+    // Check alarms on mount
+    if (alarmsCount.value > 0 && !soundPlayed.value) {
+        setTimeout(() => {
+            playAlarmSound();
+            soundPlayed.value = true;
+        }, 1200);
     }
 });
-onUnmounted(() => window.removeEventListener('scroll', handleScroll));
+onUnmounted(() => {
+    window.removeEventListener('scroll', handleScroll);
+    window.removeEventListener('click', closeDropdownsOnClickOutside);
+});
 </script>
 
 <template>
-    <div class="alo-page-bg min-h-screen flex flex-col relative overflow-hidden" style="background: linear-gradient(to bottom, #d1fae5 0%, #ecfdf5 20%, #e0f2fe 65%, #eff6ff 100%)">
+    <div class="alo-page-bg min-h-screen flex flex-col relative overflow-x-hidden">
         <!-- Decorative glowing celestial green/blue blobs in the background -->
         <div class="alo-blob-1 absolute -left-20 top-20 h-96 w-96 rounded-full bg-emerald-400/20 blur-3xl pointer-events-none"></div>
         <div class="alo-blob-2 absolute -right-20 bottom-10 h-[500px] w-[500px] rounded-full bg-blue-400/15 blur-3xl pointer-events-none"></div>
@@ -83,7 +155,7 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll));
         </div>
 
         <!-- Navbar -->
-        <nav class="alo-navbar sticky top-0 z-50 transition-all duration-300"
+        <nav class="alo-navbar sticky top-0 z-50 transition-all duration-300 !overflow-visible"
              :class="[scrolled
                 ? 'bg-white/95 backdrop-blur-md shadow-lg border-b border-gray-100 alo-navbar-scrolled'
                 : 'bg-white border-b border-gray-100 shadow-sm']">
@@ -127,21 +199,139 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll));
 
                     <!-- Usuario + tema + logout -->
                     <div class="flex items-center gap-3">
-                        <!-- Theme Toggle -->
-                        <button
-                            @click="toggleTheme"
-                            class="theme-toggle"
-                            :title="isDark ? 'Modo Claro' : 'Modo Oscuro'"
-                        >
-                            <!-- Sol (visible en dark mode) -->
-                            <svg v-if="isDark" class="h-5 w-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
-                            </svg>
-                            <!-- Luna (visible en light mode) -->
-                            <svg v-else class="h-5 w-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
-                            </svg>
-                        </button>
+                        <!-- Alarms Toggle & Dropdown -->
+                        <div class="relative shrink-0">
+                            <button
+                                ref="bellButtonRef"
+                                @click="showAlarmsDropdown = !showAlarmsDropdown"
+                                class="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 transition-all duration-200 hover:bg-gray-200 dark:hover:bg-gray-700"
+                                :class="alarmsCount > 0 ? 'animate-pulse' : ''"
+                                title="Alarmas del Sistema"
+                            >
+                                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                                </svg>
+                                <span v-if="alarmsCount > 0" class="absolute -top-1 -right-1 flex h-5 w-5">
+                                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                                    <span class="relative inline-flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-black text-white ring-2 ring-white">
+                                        {{ alarmsCount }}
+                                    </span>
+                                </span>
+                            </button>
+
+                            <!-- Dropdown Menu Rediseñado Premium (YouTube Style) Compacto -->
+                            <div 
+                                ref="alarmsDropdownRef"
+                                v-show="showAlarmsDropdown" 
+                                class="absolute top-full mt-2 w-[310px] sm:w-[320px] rounded-2xl bg-pure-white dark:bg-neutral-900 border border-gray-200/60 dark:border-neutral-800 shadow-[0_10px_35px_rgba(0,0,0,0.06)] dark:shadow-[0_15px_40px_rgba(0,0,0,0.45)] z-[100] text-gray-900 dark:text-neutral-50 right-0"
+                                style="position: absolute !important; overflow: visible !important;"
+                            >
+                                <!-- Triángulo indicador que conecta con la campana -->
+                                <div 
+                                    class="absolute w-3 h-3 bg-pure-white dark:bg-neutral-900 rotate-45 border-l border-t border-gray-200/60 dark:border-neutral-800 z-0 -top-[6px] right-[14px]"
+                                    style="position: absolute !important;"
+                                ></div>
+                                
+                                <div class="relative z-10 p-3">
+                                    <div class="mb-2 flex items-center justify-between border-b border-gray-100 dark:border-neutral-800 pb-2">
+                                        <h3 class="font-black text-xs text-gray-900 dark:text-white flex items-center gap-1.5">
+                                            🔔 Notificaciones
+                                            <span class="rounded-full bg-red-500 text-white text-[9px] font-black px-1.5 py-0.2" v-if="alarmsCount > 0">{{ alarmsCount }}</span>
+                                        </h3>
+                                        <button @click="showAlarmsDropdown = false" class="text-[10px] text-gray-400 dark:text-neutral-400 hover:text-gray-900 dark:hover:text-white transition">Cerrar</button>
+                                    </div>
+
+                                    <!-- Contenedor scrollable para las notificaciones (estilo YouTube) -->
+                                    <div class="max-h-[295px] overflow-y-auto pr-1">
+                                        <div v-if="alarmsCount === 0" class="py-8 text-center flex flex-col items-center justify-center gap-1.5">
+                                            <div class="h-10 w-10 rounded-full bg-emerald-500/10 dark:bg-emerald-500/20 flex items-center justify-center text-xl text-emerald-500 dark:text-emerald-400">✨</div>
+                                            <p class="text-xs font-bold text-emerald-600 dark:text-emerald-400 mt-1">¡Todo bajo control!</p>
+                                            <p class="text-[10px] text-gray-500 dark:text-neutral-400 px-2 text-center leading-normal">No hay retornos de faltas o citaciones para hoy.</p>
+                                        </div>
+
+                                        <div v-else class="divide-y divide-gray-100 dark:divide-neutral-800">
+                                            <!-- ── Faltas Programadas (Retornos Obligatorios) ── -->
+                                            <div v-if="page.props.alarms.faltas.length > 0">
+                                                <div v-for="falta in page.props.alarms.faltas" :key="falta.id" 
+                                                     class="flex items-start justify-between gap-2.5 py-2.5 hover:bg-gray-50 dark:hover:bg-neutral-800/50 transition duration-150 px-1.5 rounded-xl">
+                                                    <Link
+                                                        :href="route('supervision.index', { search: falta.unidad_codigo })"
+                                                        class="flex-1 flex items-start gap-2.5 min-w-0"
+                                                        @click="showAlarmsDropdown = false"
+                                                    >
+                                                        <!-- Icon Badge -->
+                                                        <div class="h-8 w-8 rounded-full bg-red-500/10 text-red-500 border border-red-500/10 dark:bg-red-500/20 dark:text-red-400 dark:border-red-500/20 flex items-center justify-center text-sm shrink-0 shadow-sm">
+                                                            🚨
+                                                        </div>
+                                                        <!-- Text Content -->
+                                                        <div class="flex-1 min-w-0 text-left">
+                                                            <p class="text-[11px] text-gray-900 dark:text-neutral-50 leading-snug">
+                                                                <span class="font-black text-red-600 dark:text-red-400">Retorno Unidad #{{ falta.unidad_codigo }}</span> - Chofer <span class="font-bold text-gray-800 dark:text-neutral-200">{{ falta.conductor_nombre }}</span> debe reportarse hoy.
+                                                            </p>
+                                                            <p class="text-[10px] text-gray-500 dark:text-neutral-400 mt-0.5 italic line-clamp-2 leading-relaxed">
+                                                                "{{ falta.descripcion }}"
+                                                            </p>
+                                                            <p class="text-[8px] text-gray-400 dark:text-neutral-500 mt-1 font-mono">
+                                                                Fecha: {{ falta.fecha_alarma }}
+                                                            </p>
+                                                        </div>
+                                                    </Link>
+                                                    <!-- Close Action -->
+                                                    <Link
+                                                        :href="route('supervision.faltas.descartar-alarma', falta.id)"
+                                                        method="post"
+                                                        as="button"
+                                                        class="text-gray-400 hover:text-red-500 dark:text-neutral-500 dark:hover:text-red-400 font-bold shrink-0 text-sm p-1 transition self-start"
+                                                        title="Marcar como atendido / Descartar"
+                                                    >✕</Link>
+                                                </div>
+                                            </div>
+
+                                            <!-- ── Citados Hoy ── -->
+                                            <div v-if="page.props.alarms.citados.length > 0">
+                                                <div v-for="citado in page.props.alarms.citados" :key="citado.id" 
+                                                     class="flex items-start justify-between gap-2.5 py-2.5 hover:bg-gray-50 dark:hover:bg-neutral-800/50 transition duration-150 px-1.5 rounded-xl">
+                                                    <Link
+                                                        :href="route('conductores.index', { search: citado.unidad_codigo || citado.nombre })"
+                                                        class="flex-1 flex items-start gap-2.5 min-w-0"
+                                                        @click="showAlarmsDropdown = false"
+                                                    >
+                                                        <!-- Icon Badge -->
+                                                        <div class="h-8 w-8 rounded-full bg-amber-500/10 text-amber-500 border border-amber-500/10 dark:bg-amber-500/20 dark:text-amber-400 dark:border-amber-500/20 flex items-center justify-center text-sm shrink-0 shadow-sm">
+                                                            📅
+                                                        </div>
+                                                        <!-- Text Content -->
+                                                        <div class="flex-1 min-w-0 text-left">
+                                                            <p class="text-[11px] text-gray-900 dark:text-neutral-50 leading-snug">
+                                                                <span class="font-black text-amber-600 dark:text-amber-400">Citación de Chofer</span> - El conductor <span class="font-bold text-gray-800 dark:text-neutral-200">{{ citado.nombre }}</span> (Unidad #{{ citado.unidad_codigo || '—' }}) está citado para hoy.
+                                                            </p>
+                                                            <p class="text-[10px] text-gray-500 dark:text-neutral-400 mt-0.5 italic line-clamp-2 leading-relaxed" v-if="citado.motivo">
+                                                                "Motivo: {{ citado.motivo }}"
+                                                            </p>
+                                                            <p class="text-[8px] text-gray-400 dark:text-neutral-500 mt-1 font-mono">
+                                                                Citación: Hoy
+                                                            </p>
+                                                        </div>
+                                                    </Link>
+                                                    <!-- Marcar como atendido / Quitar citación -->
+                                                    <Link
+                                                        :href="route('conductores.quitar-citacion', citado.id)"
+                                                        method="put"
+                                                        as="button"
+                                                        class="text-gray-400 hover:text-emerald-500 dark:text-neutral-500 dark:hover:text-[#00ff66] font-bold shrink-0 text-sm p-1 transition self-start"
+                                                        title="Marcar como atendido / Quitar citación"
+                                                        @click="showAlarmsDropdown = false"
+                                                    >✓</Link>
+                                                </div>
+                                            </div>
+
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+
 
                         <div class="alo-user-pill hidden items-center gap-2 rounded-full bg-gray-100 px-4 py-2 sm:flex">
                             <div class="h-7 w-7 shrink-0 overflow-hidden rounded-full border border-gray-200 bg-gray-50 flex items-center justify-center">
@@ -244,7 +434,7 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll));
             </div>
         </footer>
 
-        <!-- ── Toast global de éxito ── -->
+        <!-- ── Toast global de éxito / warning ── -->
         <Transition
             enter-active-class="transition-all duration-300 ease-out"
             enter-from-class="opacity-0 translate-x-full scale-95"
@@ -253,28 +443,40 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll));
             leave-from-class="opacity-100 translate-x-0 scale-100"
             leave-to-class="opacity-0 translate-x-12 scale-95"
         >
-            <div v-if="showToast && flashSuccess"
-                class="fixed top-[76px] right-5 z-[200] flex w-full max-w-[340px] items-start gap-3 rounded-2xl bg-white px-5 py-4 shadow-[0_8px_32px_rgba(0,0,0,0.14)] ring-1 ring-gray-100 overflow-hidden"
+            <div v-if="showToast && toastMessage"
+                class="fixed bottom-6 right-6 z-[200] flex w-full max-w-[340px] items-start gap-3 rounded-2xl bg-white/95 dark:bg-gray-950/95 backdrop-blur-md px-5 py-4 shadow-[0_8px_32px_rgba(0,0,0,0.15)] border border-gray-100 dark:border-white/5 overflow-hidden select-none"
             >
                 <!-- Barra lateral izquierda -->
-                <span class="absolute left-0 inset-y-0 w-1 rounded-l-2xl bg-alo-green"></span>
+                <span class="absolute left-0 inset-y-0 w-1 rounded-l-2xl"
+                    :class="toastType === 'success' ? 'bg-alo-green' : 'bg-alo-red'"
+                ></span>
 
                 <!-- Icono -->
-                <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-alo-green/10">
-                    <svg class="h-5 w-5 text-alo-green" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full"
+                    :class="toastType === 'success' ? 'bg-alo-green/10' : 'bg-alo-red/10'"
+                >
+                    <svg v-if="toastType === 'success'" class="h-5 w-5 text-alo-green" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    <!-- Icono X para revertir/error -->
+                    <svg v-else class="h-5 w-5 text-alo-red" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
                     </svg>
                 </div>
 
                 <!-- Texto -->
                 <div class="flex-1 min-w-0 pl-1">
-                    <p class="text-[10px] font-bold uppercase tracking-widest text-alo-green">Operación exitosa</p>
-                    <p class="mt-0.5 text-sm font-semibold text-gray-800 leading-snug">{{ flashSuccess }}</p>
+                    <p class="text-[10px] font-bold uppercase tracking-widest"
+                        :class="toastType === 'success' ? 'text-alo-green' : 'text-alo-red'"
+                    >
+                        {{ toastType === 'success' ? 'Operación exitosa' : 'Operación revertida' }}
+                    </p>
+                    <p class="mt-0.5 text-sm font-semibold text-gray-800 dark:text-gray-200 leading-snug">{{ toastMessage }}</p>
                 </div>
 
                 <!-- Cerrar -->
                 <button @click="closeToast"
-                    class="shrink-0 rounded-lg p-1 text-gray-300 transition hover:bg-gray-100 hover:text-gray-500"
+                    class="shrink-0 rounded-lg p-1 text-gray-400 dark:text-gray-500 transition hover:bg-gray-100 dark:hover:bg-white/10 hover:text-gray-600 dark:hover:text-white"
                 >
                     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
@@ -282,10 +484,22 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll));
                 </button>
 
                 <!-- Barra de progreso -->
-                <div class="absolute bottom-0 left-0 right-0 h-[3px] bg-gray-100">
-                    <div class="h-full bg-alo-green toast-progress-bar"></div>
+                <div class="absolute bottom-0 left-0 right-0 h-[3px] bg-gray-100 dark:bg-white/10">
+                    <div class="h-full toast-progress-bar"
+                        :class="toastType === 'success' ? 'bg-alo-green' : 'bg-alo-red'"
+                    ></div>
                 </div>
             </div>
         </Transition>
     </div>
 </template>
+
+<style scoped>
+@keyframes toastProgress {
+    from { width: 100%; }
+    to { width: 0%; }
+}
+.toast-progress-bar {
+    animation: toastProgress 4.5s linear forwards;
+}
+</style>
